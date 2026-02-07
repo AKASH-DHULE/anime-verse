@@ -1,11 +1,4 @@
-import Link from 'next/link';
-
-import Image from 'next/image';
-
-type ImgSet = {
-  jpg?: { image_url?: string };
-  webp?: { image_url?: string };
-};
+import WatchOrderCard from './WatchOrderCard';
 
 type RawRelation = {
   relation: string;
@@ -13,13 +6,11 @@ type RawRelation = {
     | {
         mal_id: number;
         title: string;
-        images?: ImgSet;
         type?: string;
       }
     | Array<{
         mal_id: number;
         title: string;
-        images?: ImgSet;
         type?: string;
       }>;
 };
@@ -27,7 +18,6 @@ type RawRelation = {
 type WatchCard = {
   mal_id: number;
   title: string;
-  image: string;
   type?: string;
   relation: string;
 };
@@ -55,7 +45,6 @@ export default function WatchOrderList({ items }: { items: RawRelation[] }) {
       normalized.push({
         mal_id: entry.mal_id,
         title: entry.title,
-        image: entry.images?.jpg?.image_url || entry.images?.webp?.image_url || '',
         type: entry.type,
         relation: rel.relation
       });
@@ -73,23 +62,9 @@ export default function WatchOrderList({ items }: { items: RawRelation[] }) {
   });
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {normalized.map((it) => (
-        <Link key={it.mal_id} href={`/anime/${it.mal_id}`} className="block bg-gray-900 rounded overflow-hidden shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
-          <div className="relative h-40 bg-gray-800">
-            {it.image ? (
-              <Image src={it.image} alt={it.title} fill className="object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">No image</div>
-            )}
-            <div className="absolute top-2 left-2 bg-black/60 text-xs px-2 py-1 rounded text-white">{it.relation}</div>
-          </div>
-
-          <div className="p-3">
-            <div className="font-semibold">{it.title}</div>
-            <div className="text-sm text-gray-400 mt-1">{it.type}</div>
-          </div>
-        </Link>
+        <WatchOrderCard key={it.mal_id} mal_id={it.mal_id} title={it.title} relation={it.relation} />
       ))}
     </div>
   );

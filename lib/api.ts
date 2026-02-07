@@ -5,8 +5,11 @@ const api = axios.create({
   timeout: 10000
 });
 
-export function parseApiError(err: unknown): { message: string; code?: number } {
-  // Unified error messages for UI
+/**
+ * Parses API errors and returns user-friendly messages
+ * Handles 404s gracefully for missing anime data
+ */
+export function parseApiError(err: unknown): { message: string; code?: number; isNotFound?: boolean } {
   // Network errors
   if (!axios.isAxiosError(err)) {
     return { message: 'Network issue. Please check your internet connection and try again.' };
@@ -14,6 +17,15 @@ export function parseApiError(err: unknown): { message: string; code?: number } 
 
   if (!err.response) {
     return { message: 'Network issue. Please check your internet connection and try again.' };
+  }
+
+  // Handle 404 - anime not found in Jikan API
+  if (err.response.status === 404) {
+    return { 
+      message: 'Anime not found. This anime may not exist in our database.', 
+      code: 404,
+      isNotFound: true 
+    };
   }
 
   if (err.response.status === 429) {

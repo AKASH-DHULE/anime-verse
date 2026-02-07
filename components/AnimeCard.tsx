@@ -29,9 +29,22 @@ export default function AnimeCard({ anime }: { anime: Anime }) {
   return (
     <article className="relative bg-gray-900 rounded overflow-hidden shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
       <Link href={`/anime/${anime.mal_id}`}>
+        {/* Image container: position: relative required for next/image fill */}
         <div className="relative h-48 w-full bg-gray-800">
           {image ? (
-            <Image src={image} alt={anime.title} fill className="object-cover" />
+            <Image
+              src={image}
+              alt={`${anime.title} anime poster`}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-cover"
+              priority={false}
+              unoptimized
+              onError={(e) => {
+                const target = e.currentTarget as HTMLImageElement;
+                target.style.display = 'none';
+              }}
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-400">No image</div>
           )}
