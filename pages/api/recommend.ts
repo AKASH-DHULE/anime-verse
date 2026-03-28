@@ -55,8 +55,9 @@ Do NOT include any markdown formatting like \`\`\`json. Return ONLY the raw JSON
 
     // Give it back to the client
     res.status(200).json({ recommendations });
-  } catch (error: any) {
-    console.error('Gemini API Error:', error);
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error('Gemini API Error:', errorMsg);
     res.status(500).json({ error: 'Failed to generate recommendations. Please try again later.' });
   }
 }

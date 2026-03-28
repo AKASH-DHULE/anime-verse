@@ -6,6 +6,7 @@ export type Anime = {
     webp?: { image_url?: string; large_image_url?: string };
   } & Record<string, { image_url?: string }>;
   title: string;
+  title_english?: string;
   synopsis?: string;
   score?: number | null;
   episodes?: number | null;

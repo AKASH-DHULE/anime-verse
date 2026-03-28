@@ -59,7 +59,7 @@ export default function Discover() {
           // Match closest title or just use first result
           const exactMatch = fetchedAnimeData.find((a: Anime) => 
             a.title.toLowerCase() === rec.title.toLowerCase() ||
-            (a as any).title_english?.toLowerCase() === rec.title.toLowerCase()
+            a.title_english?.toLowerCase() === rec.title.toLowerCase()
           );
 
           finalResults.push({
@@ -78,8 +78,9 @@ export default function Discover() {
       }
 
       setResults(finalResults);
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong.');
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      setError(errorMsg || 'Something went wrong.');
     } finally {
       setLoading(false);
     }
@@ -103,7 +104,7 @@ export default function Discover() {
               AI <span className="text-accent">Discover</span> ✨
             </h1>
             <p className="text-gray-400 text-lg md:text-xl mb-10">
-              Tell me what you're in the mood for, and I'll find the perfect anime for you!
+              Tell me what you&apos;re in the mood for, and I&apos;ll find the perfect anime for you!
             </p>
 
             <form onSubmit={handleSearch} className="relative group">
@@ -137,9 +138,9 @@ export default function Discover() {
 
             <div className="mt-6 flex flex-wrap justify-center gap-3 text-sm">
               <span className="text-gray-500">Try:</span>
-              <button onClick={() => setPrompt('An overpowered main character who hides their true strength')} className="text-gray-400 hover:text-accent transition-colors">"OP MC hides strength"</button>
-              <button onClick={() => setPrompt('A psychological thriller with mind-bending plot twists')} className="text-gray-400 hover:text-accent transition-colors">"Mind-bending thriller"</button>
-              <button onClick={() => setPrompt('A cozy slice-of-life anime about food and friendship')} className="text-gray-400 hover:text-accent transition-colors">"Cozy slice-of-life"</button>
+              <button onClick={() => setPrompt('An overpowered main character who hides their true strength')} className="text-gray-400 hover:text-accent transition-colors">&quot;OP MC hides strength&quot;</button>
+              <button onClick={() => setPrompt('A psychological thriller with mind-bending plot twists')} className="text-gray-400 hover:text-accent transition-colors">&quot;Mind-bending thriller&quot;</button>
+              <button onClick={() => setPrompt('A cozy slice-of-life anime about food and friendship')} className="text-gray-400 hover:text-accent transition-colors">&quot;Cozy slice-of-life&quot;</button>
             </div>
           </div>
         </section>
@@ -169,7 +170,7 @@ export default function Discover() {
                     <div className="absolute top-0 left-4 -translate-y-1/2 bg-accent text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-lg shadow-accent/20">
                       <Sparkles className="w-3 h-3" /> AI Says
                     </div>
-                    <p className="text-sm text-gray-300 italic">"{result.recommendation.reason}"</p>
+                    <p className="text-sm text-gray-300 italic">&quot;{result.recommendation.reason}&quot;</p>
                   </div>
 
                   {/* Anime Card or Fallback */}

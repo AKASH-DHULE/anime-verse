@@ -1,4 +1,4 @@
-import { Star, Flame, Trophy } from 'lucide-react';
+import { Flame, Trophy } from 'lucide-react';
 import Hero from '../components/Hero';
 import TopAnimeCarousel from '../components/TopAnimeCarousel';
 import useTopAnime from '../hooks/useTopAnime';

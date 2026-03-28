@@ -25,7 +25,7 @@ export default function Favorites() {
              </h1>
           </div>
           <p className="text-gray-400 text-lg max-w-2xl">
-            Everything you've saved while exploring the AnimeVerse. Your favorites and watchlist are synced to your browser.
+            Everything you&apos;ve saved while exploring the AnimeVerse. Your favorites and watchlist are synced to your browser.
           </p>
         </section>
 
