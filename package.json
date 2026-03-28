@@ -1,5 +1,5 @@
 {
-  "name": "anime-compass",
+  "name": "anime-verse",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,6 +10,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@tanstack/react-query": "^5.0.0",
     "axios": "^1.5.0",
     "lodash.debounce": "^4.0.8",

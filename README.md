@@ -1,4 +1,4 @@
-# Anime Compass
+# AnimeVerse
 
 Next.js + TypeScript starter for the Anime discovery platform using Jikan API v4.
 

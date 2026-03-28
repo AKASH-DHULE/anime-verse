@@ -8,6 +8,7 @@ async function fetchReviews(id: number | string) {
     return res.data.data as Review[];
   } catch (err) {
     const parsed = parseApiError(err);
+    if (parsed.isNotFound) return [];
     throw new Error(parsed.message);
   }
 }

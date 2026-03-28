@@ -8,6 +8,7 @@ async function fetchTop(page = 1) {
     return res.data.data as Anime[];
   } catch (err) {
     const parsed = parseApiError(err);
+    if (parsed.isNotFound) return [];
     throw new Error(parsed.message);
   }
 }

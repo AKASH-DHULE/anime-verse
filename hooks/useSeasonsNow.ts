@@ -7,6 +7,7 @@ async function fetchSeasonsNow() {
     return res.data.data;
   } catch (err) {
     const parsed = parseApiError(err);
+    if (parsed.isNotFound) return [];
     throw new Error(parsed.message);
   }
 }

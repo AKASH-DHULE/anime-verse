@@ -20,7 +20,8 @@ export default function Hero() {
 
   // CRITICAL: Extract image URL safely with optional chaining
   // Jikan API structure: anime.images?.jpg?.large_image_url or anime.images?.jpg?.image_url
-  const imageUrl = featured?.images?.jpg?.large_image_url || featured?.images?.jpg?.image_url || '';
+  const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=2000&auto=format&fit=crop';
+  const imageUrl = featured?.images?.jpg?.large_image_url || featured?.images?.jpg?.image_url || FALLBACK_IMAGE;
   const score = featured?.score ?? 0;
 
   // DEBUG: Log image URL to verify it's loading correctly

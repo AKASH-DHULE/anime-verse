@@ -9,6 +9,7 @@ async function fetchFeaturedAnime() {
     return res.data.data[0] as Anime;
   } catch (err) {
     const parsed = parseApiError(err);
+    if (parsed.isNotFound) return null;
     throw new Error(parsed.message);
   }
 }

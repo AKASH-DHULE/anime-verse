@@ -1,6 +1,6 @@
 import useLocalStorage from '../hooks/useLocalStorage';
 import AnimeCard from '../components/AnimeCard';
-
+import { Heart, Eye, Ghost, Sparkles, LayoutGrid } from 'lucide-react';
 import type { Anime } from '../types/anime';
 
 export default function Favorites() {
@@ -8,27 +8,94 @@ export default function Favorites() {
   const [watchlist] = useLocalStorage<Anime[]>('watchlist', []);
 
   return (
-    <div className="max-w-6xl mx-auto mt-12">
-      <h1 className="text-4xl font-extrabold">Favorites & Watchlist</h1>
-      <p className="text-gray-400">Items saved locally will appear here.</p>
+    <div className="relative min-h-screen pb-24 overflow-hidden">
+      {/* Background decorations */}
+      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-rose-500/5 blur-[120px] rounded-full pointer-events-none -mt-24"></div>
+      <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-accent/5 blur-[150px] rounded-full pointer-events-none -mb-48"></div>
 
-      <section className="mt-6">
-        <h2 className="text-2xl font-bold">Favorites</h2>
-        {favorites.length === 0 ? <div className="text-gray-400 mt-3">No favorites yet.</div> : (
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {favorites.map((a) => <AnimeCard key={a.mal_id} anime={a} />)}
+      <div className="max-w-6xl mx-auto relative z-10 px-4">
+        {/* Header Section */}
+        <section className="pt-20 pb-12 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="flex items-center gap-3 mb-4">
+             <div className="p-3 bg-accent/10 rounded-2xl">
+               <LayoutGrid className="w-8 h-8 text-accent" />
+             </div>
+             <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
+               MY <span className="text-accent">COLLECTION</span>
+             </h1>
           </div>
-        )}
-      </section>
+          <p className="text-gray-400 text-lg max-w-2xl">
+            Everything you've saved while exploring the AnimeVerse. Your favorites and watchlist are synced to your browser.
+          </p>
+        </section>
 
-      <section className="mt-8">
-        <h2 className="text-2xl font-bold">Watchlist</h2>
-        {watchlist.length === 0 ? <div className="text-gray-400 mt-3">No items in watchlist.</div> : (
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {watchlist.map((a) => <AnimeCard key={a.mal_id} anime={a} />)}
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="bg-gray-900/40 backdrop-blur-md border border-gray-800 p-6 rounded-2xl flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-rose-500/10 rounded-xl">
+                <Heart className="w-6 h-6 text-rose-500" />
+              </div>
+              <div>
+                <p className="text-gray-500 text-sm font-medium">FAVORITES</p>
+                <p className="text-2xl font-bold">{favorites.length}</p>
+              </div>
+            </div>
+            <Sparkles className="w-5 h-5 text-gray-700" />
           </div>
-        )}
-      </section>
+          <div className="bg-gray-900/40 backdrop-blur-md border border-gray-800 p-6 rounded-2xl flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-500/10 rounded-xl">
+                <Eye className="w-6 h-6 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-gray-500 text-sm font-medium">WATCHLIST</p>
+                <p className="text-2xl font-bold">{watchlist.length}</p>
+              </div>
+            </div>
+            <Sparkles className="w-5 h-5 text-gray-700" />
+          </div>
+        </div>
+
+        {/* Favorites Section */}
+        <section className="mb-20 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
+          <div className="flex items-center gap-3 mb-8 border-b border-gray-800 pb-4">
+            <Heart className="w-6 h-6 text-rose-500" />
+            <h2 className="text-2xl font-bold">FRavorites</h2>
+          </div>
+          
+          {favorites.length === 0 ? (
+            <div className="py-20 bg-gray-900/20 border border-dashed border-gray-800 rounded-3xl text-center">
+              <Ghost className="w-12 h-12 mx-auto mb-4 text-gray-700" />
+              <p className="text-gray-400 font-medium">No favorites yet. Go find some gems!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {favorites.map((a) => <AnimeCard key={a.mal_id} anime={a} />)}
+            </div>
+          )}
+        </section>
+
+        {/* Watchlist Section */}
+        <section className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+          <div className="flex items-center gap-3 mb-8 border-b border-gray-800 pb-4">
+            <Eye className="w-6 h-6 text-blue-500" />
+            <h2 className="text-2xl font-bold">Watchlist</h2>
+          </div>
+          
+          {watchlist.length === 0 ? (
+            <div className="py-20 bg-gray-900/20 border border-dashed border-gray-800 rounded-3xl text-center">
+              <Ghost className="w-12 h-12 mx-auto mb-4 text-gray-700" />
+              <p className="text-gray-400 font-medium">Your watchlist is empty. Add something to watch later!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {watchlist.map((a) => <AnimeCard key={a.mal_id} anime={a} />)}
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
+

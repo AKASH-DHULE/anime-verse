@@ -27,7 +27,7 @@ export default function AnimeCard({ anime }: { anime: Anime }) {
   };
 
   return (
-    <article className="relative bg-gray-900 rounded overflow-hidden shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+    <article className="relative bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-accent/10 transition-all duration-300 transform hover:-translate-y-2 group">
       <Link href={`/anime/${anime.mal_id}`}>
         {/* Image container: position: relative required for next/image fill */}
         <div className="relative h-48 w-full bg-gray-800">
