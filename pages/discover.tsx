@@ -30,7 +30,7 @@ export default function Discover() {
     setResults([]);
 
     try {
-      // 1. Get recommendations from Gemini
+      // 1. Get recommendations from Groq AI (Llama 3.3 70B)
       const res = await fetch('/api/recommend', {
         method: 'POST',
         headers: {
@@ -42,6 +42,9 @@ export default function Discover() {
       const data = await res.json();
 
       if (!res.ok) {
+        if (res.status === 429) {
+          throw new Error('⚠️ AI rate limited. Please try again in a moment.');
+        }
         throw new Error(data.error || 'Failed to get recommendations');
       }
 

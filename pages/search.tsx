@@ -1,15 +1,17 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import useSearch from '../hooks/useSearch';
 import AnimeCard from '../components/AnimeCard';
 import SkeletonCard from '../components/SkeletonCard';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
-import { Search, Filter, Hash, Sparkles } from 'lucide-react';
+import { Search, Filter, Hash, Zap } from 'lucide-react';
 import type { Genre } from '../types/genre';
 import type { Anime } from '../types/anime';
 
 export default function SearchPage() {
   const [query, setQuery] = useState('');
+  const [selectedGenre, setSelectedGenre] = useState('newest');
+
   const { data: genres } = useQuery({
     queryKey: ['genres'],
     queryFn: async () => {
@@ -18,9 +20,32 @@ export default function SearchPage() {
     }
   });
 
-  const { data: results, isLoading, error } = useSearch(query || '', 1);
+  // Fetch newest anime from current season
+  const { data: newestAnime, isLoading: loadingNewest } = useQuery<Anime[]>({
+    queryKey: ['seasons-now-search'],
+    queryFn: async () => {
+      const res = await api.get('/seasons/now', { params: { limit: 24 } });
+      return res.data.data as Anime[];
+    },
+    enabled: selectedGenre === 'newest' && !query,
+  });
+
+  const { data: searchResults, isLoading: loadingSearch } = useSearch(
+    query || (selectedGenre !== 'newest' && selectedGenre !== 'all' ? ' ' : ''),
+    1,
+    selectedGenre !== 'newest' && selectedGenre !== 'all' ? selectedGenre : undefined
+  );
+
+  const showNewest = !query && selectedGenre === 'newest';
+  const isLoading = showNewest ? loadingNewest : loadingSearch;
+  const results = showNewest ? newestAnime : searchResults;
 
   const popularGenres = ['Action', 'Romance', 'Adventure', 'Fantasy', 'Comedy'];
+
+  const handleGenreClick = useCallback((genre: string) => {
+    setQuery(genre);
+    setSelectedGenre('all');
+  }, []);
 
   return (
     <div className="relative min-h-screen pb-24 overflow-hidden">
@@ -42,19 +67,29 @@ export default function SearchPage() {
           <div className="max-w-3xl mx-auto mb-12">
             <div className="flex flex-col md:flex-row gap-4 p-2 bg-gray-900/60 backdrop-blur-md border border-gray-800 rounded-2xl shadow-2xl focus-within:border-accent/40 transition-all">
               <input
-                placeholder="Search by name (e.g. Naruto, One Piece)..."
+                placeholder={showNewest ? 'Browsing newest anime... or type to search' : 'Search by name (e.g. Naruto, One Piece)...'}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="flex-1 bg-transparent border-none outline-none p-4 text-lg text-white"
+                className="flex-1 bg-transparent border-none outline-none p-4 text-lg text-white placeholder-gray-600"
               />
               <div className="flex items-center gap-2 p-1">
-                <select className="bg-gray-800 border-none outline-none px-4 py-3 rounded-xl text-sm font-medium text-gray-300 min-w-[140px] cursor-pointer hover:bg-gray-700 transition-colors">
-                  <option value="">All Genres</option>
+                <select
+                  value={selectedGenre}
+                  onChange={(e) => {
+                    setSelectedGenre(e.target.value);
+                    if (e.target.value === 'newest') setQuery('');
+                  }}
+                  className="bg-gray-800 border-none outline-none px-4 py-3 rounded-xl text-sm font-medium text-gray-300 min-w-[150px] cursor-pointer hover:bg-gray-700 transition-colors"
+                >
+                  <option value="newest">🆕 Newest First</option>
+                  <option value="all">All Genres</option>
                   {genres?.map((g: Genre) => (
-                    <option key={g.mal_id} value={g.mal_id}>{g.name}</option>
+                    <option key={g.mal_id} value={String(g.mal_id)}>{g.name}</option>
                   ))}
                 </select>
-                <button className="bg-accent hover:bg-accent/90 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-accent/20 active:scale-95">
+                <button
+                  className="bg-accent hover:bg-accent/90 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-accent/20 active:scale-95"
+                >
                   SEARCH
                 </button>
               </div>
@@ -66,7 +101,7 @@ export default function SearchPage() {
               {popularGenres.map((g) => (
                 <button
                   key={g}
-                  onClick={() => setQuery(g)}
+                  onClick={() => handleGenreClick(g)}
                   className="px-4 py-1.5 rounded-full bg-gray-900 border border-gray-800 text-gray-400 hover:text-accent hover:border-accent/50 transition-all active:scale-90"
                 >
                   {g}
@@ -80,19 +115,15 @@ export default function SearchPage() {
         <div className="mb-8 flex items-center justify-between border-b border-gray-800 pb-4">
           <div className="flex items-center gap-2 text-gray-400 font-medium">
             <Filter className="w-4 h-4" />
-            {results ? `Showing ${results.length} results` : 'Exploring...'}
+            {showNewest
+              ? <span className="flex items-center gap-1.5"><Zap className="w-4 h-4 text-accent" />Showing newest airing anime</span>
+              : results ? `Showing ${results.length} results` : 'Exploring...'
+            }
           </div>
         </div>
 
         {/* Results Grid */}
         <div className="mt-8">
-          {error && (
-            <div className="p-8 bg-red-500/5 border border-red-500/20 rounded-2xl text-red-400 text-center">
-              <Sparkles className="w-8 h-8 mx-auto mb-2 text-red-500/50" />
-              <p>{(error as Error).message}</p>
-            </div>
-          )}
-
           {isLoading && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {Array.from({ length: 8 }).map((_, i) => (
@@ -111,7 +142,7 @@ export default function SearchPage() {
             </div>
           )}
 
-          {!isLoading && results && (
+          {!isLoading && results && results.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
               {results.map((r: Anime) => (
                 <AnimeCard key={r.mal_id} anime={r} />
@@ -123,4 +154,3 @@ export default function SearchPage() {
     </div>
   );
 }
-

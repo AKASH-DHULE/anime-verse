@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { User, Sparkles } from 'lucide-react';
+import { User, Sparkles, Menu, X } from 'lucide-react';
+import { useState } from 'react';
 
 export default function Header() {
   const router = useRouter();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navLinks = [
     { name: 'Home', href: '/' },
@@ -60,16 +62,46 @@ export default function Header() {
 
         {/* Profile & Mobile Actions */}
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center justify-center p-2 rounded-xl bg-gray-900/60 border border-gray-800 cursor-pointer hover:border-accent/50 hover:bg-gray-800 transition-all group">
+          <div className="flex items-center justify-center p-2 rounded-xl bg-gray-900/60 border border-gray-800 cursor-pointer hover:border-accent/50 hover:bg-gray-800 transition-all group">
              <User className="w-5 h-5 text-gray-400 group-hover:text-accent transition-colors" />
           </div>
           
-          <button className="md:hidden p-2 rounded-lg bg-gray-900 border border-gray-800 text-gray-400">
-             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden p-2 rounded-xl bg-gray-900/60 border border-gray-800 text-gray-400 hover:bg-gray-800 transition-colors"
+          >
+             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
-
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden absolute top-full left-0 w-full bg-gray-950/95 border-b border-gray-800/50 backdrop-blur-xl animate-in slide-in-from-top-4 fade-in duration-200">
+          <nav className="flex flex-col p-4 gap-2">
+            {navLinks.map((link) => {
+              const isActive = router.pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`
+                    px-4 py-3 rounded-xl font-bold flex items-center gap-2
+                    ${isActive 
+                      ? 'bg-accent/10 text-accent border border-accent/20' 
+                      : 'text-gray-300 hover:bg-gray-900 border border-transparent'
+                    }
+                  `}
+                >
+                  {link.icon && <span>{link.icon}</span>}
+                  {link.name}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

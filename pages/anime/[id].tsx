@@ -100,7 +100,7 @@ export default function AnimeDetails(): JSX.Element {
   return (
     <div className="max-w-6xl mx-auto mt-12 px-4">
       <div>
-        <h1 className="text-4xl font-extrabold">{anime.title}</h1>
+        <h1 className="text-4xl font-extrabold">{anime.title_english || anime.title}</h1>
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* LEFT COLUMN: Poster and Info */}
@@ -110,7 +110,7 @@ export default function AnimeDetails(): JSX.Element {
               {anime.images?.jpg?.image_url ? (
                 <Image
                   src={anime.images.jpg.image_url}
-                  alt={`${anime.title} anime poster`}
+                  alt={`${anime.title_english || anime.title} anime poster`}
                   fill
                   className="object-cover"
                   priority={false}

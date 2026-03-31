@@ -20,8 +20,39 @@ export default function Home() {
       <div className="max-w-6xl mx-auto relative z-10 px-4">
         <Hero />
 
-        {/* Top 10 Anime Carousel */}
+        {/* Current Season Section */}
         <section className="mt-20 animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="relative p-2 bg-orange-500/10 rounded-lg overflow-hidden group">
+              <div className="absolute inset-0 bg-orange-500/20 blur-xl group-hover:bg-orange-500/30 transition-colors duration-500"></div>
+              <Flame className="relative w-6 h-6 text-orange-500 drop-shadow-[0_0_10px_rgba(249,115,22,0.8)] animate-pulse" />
+            </div>
+            <div>
+              <h2 className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">
+                CURRENTLY AIRING
+              </h2>
+              <div className="w-16 h-1 bg-gradient-to-r from-orange-500 to-transparent rounded-full mt-1"></div>
+            </div>
+          </div>
+          <p className="text-gray-400 text-lg">The hottest anime airing right now</p>
+
+          <div className="mt-8 sm:mt-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6">
+            {loadingSeason && Array.from({ length: 10 }).map((_, i) => <SkeletonCard key={i} />)}
+
+            {!loadingSeason && seasonNow?.slice(0, 10).map((anime: Anime, idx: number) => (
+              <div 
+                key={anime.mal_id} 
+                className="animate-in fade-in zoom-in-95 slide-in-from-bottom-5 duration-700 hover:z-10"
+                style={{ animationDelay: `${idx * 100}ms`, animationFillMode: 'both' }}
+              >
+                <AnimeCard anime={anime} />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Top 10 Anime Carousel */}
+        <section className="mt-24 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-accent/10 rounded-lg">
               <Trophy className="w-6 h-6 text-accent" />
@@ -38,28 +69,6 @@ export default function Home() {
           </div>
 
           {error && <div className="mt-8 p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-center">Error loading top anime. Please try refreshing.</div>}
-        </section>
-
-        {/* Current Season Section */}
-        <section className="mt-24 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-orange-500/10 rounded-lg">
-              <Flame className="w-6 h-6 text-orange-500" />
-            </div>
-            <div>
-              <h2 className="text-3xl font-extrabold tracking-tight">CURRENTLY AIRING</h2>
-              <div className="w-12 h-1 bg-orange-500 rounded-full mt-1"></div>
-            </div>
-          </div>
-          <p className="text-gray-400 text-lg">The hottest anime airing right now</p>
-
-          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {loadingSeason && Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}
-
-            {!loadingSeason && seasonNow?.slice(0, 3).map((anime: Anime) => (
-              <AnimeCard key={anime.mal_id} anime={anime} />
-            ))}
-          </div>
         </section>
       </div>
     </div>

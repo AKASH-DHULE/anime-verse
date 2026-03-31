@@ -1,9 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import Groq from 'groq-sdk';
 
-// Initialize the Gemini API
-const apiKey = process.env.GEMINI_API_KEY;
-const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 type Recommendation = {
   title: string;
@@ -18,8 +16,10 @@ export default async function handler(
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  if (!genAI) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY is not configured in environment variables.' });
+  if (!GROQ_API_KEY) {
+    return res.status(500).json({
+      error: 'GROQ_API_KEY is not configured. Please add it to .env.local. Get a free key from https://console.groq.com',
+    });
   }
 
   const { prompt } = req.body;
@@ -28,36 +28,55 @@ export default async function handler(
     return res.status(400).json({ error: 'Valid prompt is required' });
   }
 
+  const groq = new Groq({ apiKey: GROQ_API_KEY });
+
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const chatCompletion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        {
+          role: 'system',
+          content: `You are an expert anime recommender with deep knowledge of ALL anime.
 
-    // Construct the actual prompt for Gemini to get structured output
-    const systemInstruction = `
-You are an expert anime recommender with deep knowledge of ALL anime, including obscure titles, genres like isekai, romance, shounen, mecha, slice of life, etc.
-The user is looking for anime recommendations. Their prompt: "${prompt}"
-
-Your response MUST be a VALID JSON array of exactly 5 recommendation objects.
-Each object must have exactly two keys:
+Your response MUST be a VALID JSON object containing a "recommendations" array.
+The JSON object must have a single key "recommendations" which is an array of exactly 5 recommendation objects.
+Each recommendation object must have exactly two keys:
 1. "title": The precise, official Romaji or English title of the anime as found on MyAnimeList/Jikan (e.g., "Sword Art Online" instead of "SAO").
 2. "reason": A brief, engaging 1-sentence reason why this fits the user's request.
 
-Do NOT include any markdown formatting like \`\`\`json. Return ONLY the raw JSON array string.
-`;
+Output ONLY valid JSON.`,
+        },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.7,
+      max_tokens: 1024,
+    });
 
-    const result = await model.generateContent(systemInstruction);
-    const responseText = result.response.text();
+    const responseText = chatCompletion.choices[0]?.message?.content ?? '{}';
 
-    // Remove any potential markdown block markers from the response
-    const cleanJSON = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
-    
-    // Parse the recommended list
-    const recommendations: Recommendation[] = JSON.parse(cleanJSON);
+    // Parse the recommended list directly
+    const parsedData = JSON.parse(responseText);
+    const recommendations: Recommendation[] = parsedData.recommendations || [];
 
-    // Give it back to the client
     res.status(200).json({ recommendations });
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error('Gemini API Error:', errorMsg);
-    res.status(500).json({ error: 'Failed to generate recommendations. Please try again later.' });
+    console.error('Groq API Error:', errorMsg);
+
+    if (errorMsg.includes('quota') || errorMsg.includes('rate_limit') || errorMsg.includes('429')) {
+      res.status(429).json({
+        error: 'AI recommendation service is rate-limited. Please try again in a moment.',
+      });
+    } else if (errorMsg.includes('401') || errorMsg.includes('invalid_api_key') || errorMsg.includes('Unauthorized')) {
+      res.status(401).json({
+        error: 'Invalid Groq API key. Please update GROQ_API_KEY in .env.local with a valid key from https://console.groq.com',
+      });
+    } else {
+      res.status(500).json({ error: 'Failed to generate recommendations. Please try again later.' });
+    }
   }
 }

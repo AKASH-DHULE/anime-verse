@@ -61,7 +61,7 @@ export default function Favorites() {
         <section className="mb-20 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
           <div className="flex items-center gap-3 mb-8 border-b border-gray-800 pb-4">
             <Heart className="w-6 h-6 text-rose-500" />
-            <h2 className="text-2xl font-bold">FRavorites</h2>
+            <h2 className="text-2xl font-bold">Favorites</h2>
           </div>
           
           {favorites.length === 0 ? (
