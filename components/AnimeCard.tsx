@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, Star, Bookmark, Plus, Check } from 'lucide-react';
+import { Heart, Star, Plus, Check } from 'lucide-react';
 import type { Anime } from '../types/anime';
 import useLocalStorage from '../hooks/useLocalStorage';
 
