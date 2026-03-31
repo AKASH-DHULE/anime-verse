@@ -261,7 +261,7 @@ export default function AnimeDetails(): JSX.Element {
                   {anime.duration && <InfoRow label="Duration" value={anime.duration} />}
                   {anime.season && anime.year && <InfoRow label="Season" value={`${capitalize(anime.season)} ${anime.year}`} />}
                   {anime.studios && anime.studios.length > 0 && (
-                    <InfoRow label="Studio" value={anime.studios.map((s: any) => s.name).join(', ')} />
+                    <InfoRow label="Studio" value={anime.studios.map((s) => s.name).join(', ')} />
                   )}
                   {anime.source && <InfoRow label="Source" value={anime.source} />}
                   {anime.rating && <InfoRow label="Rating" value={anime.rating} />}

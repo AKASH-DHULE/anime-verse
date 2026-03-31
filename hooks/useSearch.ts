@@ -5,7 +5,7 @@ import type { Anime } from '../types/anime';
 
 async function searchAnime(q: string, page = 1, genres?: string, year?: string): Promise<Anime[]> {
   try {
-    const params: any = { q, page };
+    const params: Record<string, string | number> = { q, page };
     if (genres) params.genres = genres;
     if (year) params.year = year;
     const res = await api.get('/anime', { params });

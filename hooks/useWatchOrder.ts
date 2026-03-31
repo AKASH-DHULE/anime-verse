@@ -12,26 +12,30 @@ async function fetchRelations(id: number | string) {
   }
 }
 
-function computeOrder(relations: any[]) {
+type Relation = {
+  relation: string;
+  entry: { mal_id: number; type: string; name: string }[];
+};
+
+function computeOrder(relations: { relation: string; entry: unknown }[]) {
   // Pre-filter: only keep relations that have anime entries
-  const animeRelations = relations
+  const animeRelations: Relation[] = relations
     .map((rel) => {
       const entries = Array.isArray(rel.entry) ? rel.entry : [rel.entry];
-      const filteredEntries = entries.filter((e: any) => e.type === 'anime');
+      const filteredEntries = entries.filter((e: any) => e.type === 'anime') as { mal_id: number; type: string; name: string }[];
       if (filteredEntries.length === 0) return null;
-      return { ...rel, entry: filteredEntries };
+      return { relation: rel.relation, entry: filteredEntries };
     })
-    .filter(Boolean);
+    .filter((rel): rel is Relation => rel !== null);
 
-  // Basic heuristic: include prequel(s) first, then main, then sequels, then movies/ovas/side-stories
-  const group: any = {
+  const group: Record<string, Relation[]> = {
     prequel: [],
     main: [],
     sequel: [],
     others: []
   };
 
-  animeRelations.forEach((rel: any) => {
+  animeRelations.forEach((rel) => {
     if (rel.relation === 'Prequel') group.prequel.push(rel);
     else if (rel.relation === 'Sequel') group.sequel.push(rel);
     else group.others.push(rel);
