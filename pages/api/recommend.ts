@@ -38,14 +38,17 @@ export default async function handler(
           role: 'system',
           content: `You are an expert anime recommender with deep knowledge of ALL anime.
 
-Your response MUST be a VALID JSON object containing a "recommendations" array.
-The JSON object must have a single key "recommendations" which is an array of exactly 5 recommendation objects.
-Each recommendation object must have exactly two keys:
-1. "title": The precise, official Romaji or English title of the anime as found on MyAnimeList/Jikan (e.g., "Sword Art Online" instead of "SAO").
-2. "reason": A brief, engaging 1-sentence reason why this fits the user's request.
-
-CRITICAL: Do NOT use double quotes inside the actual title or reason text, as it will break JSON parsing. Use single quotes instead if needed.
-Output ONLY valid JSON.`,
+Output exactly 5 recommendations based on the user's prompt. 
+You MUST respond with a valid JSON object matching this exact structure:
+{
+  "recommendations": [
+    {
+      "title": "Exact Title from MyAnimeList/Jikan",
+      "reason": "A 1-sentence engaging reason (use single quotes for 'quotes' if needed)."
+    }
+  ]
+}
+Do not include any extra text.`,
         },
         {
           role: 'user',
