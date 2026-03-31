@@ -5,12 +5,12 @@ type RawRelation = {
   entry?:
     | {
         mal_id: number;
-        title: string;
+        name: string;
         type?: string;
       }
     | Array<{
         mal_id: number;
-        title: string;
+        name: string;
         type?: string;
       }>;
 };
@@ -44,7 +44,7 @@ export default function WatchOrderList({ items }: { items: RawRelation[] }) {
     entries.forEach((entry) => {
       normalized.push({
         mal_id: entry.mal_id,
-        title: entry.title,
+        title: entry.name,
         type: entry.type,
         relation: rel.relation
       });
@@ -62,10 +62,22 @@ export default function WatchOrderList({ items }: { items: RawRelation[] }) {
   });
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {normalized.map((it) => (
-        <WatchOrderCard key={it.mal_id} mal_id={it.mal_id} title={it.title} relation={it.relation} />
-      ))}
+    <div className="relative mt-8">
+      {/* Timeline Line */}
+      <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-700/50 -translate-y-1/2 hidden sm:block" />
+
+      <div className="flex overflow-x-auto gap-8 pb-8 snap-x relative">
+        {normalized.map((it) => (
+          <div key={`${it.mal_id}-${it.relation}`} className="flex-shrink-0 w-64 snap-center relative">
+            {/* Timeline Dot */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-accent rounded-full border-4 border-gray-900 z-10 hidden sm:block shadow-[0_0_10px_rgba(var(--accent-rgb),0.5)]" />
+            
+            <div className="relative z-20">
+              <WatchOrderCard mal_id={it.mal_id} title={it.title} relation={it.relation} />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

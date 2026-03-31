@@ -46,44 +46,36 @@ export default function WatchOrderCard({ mal_id, title, relation }: WatchOrderCa
 
   return (
     <Link href={`/anime/${mal_id}`} className="group block">
-      {/* CRITICAL: Parent div must have position: relative for Image fill to work */}
-      <div className="relative h-60 bg-gray-800 rounded-lg overflow-hidden shadow-md transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
-        {/* Image - using fill with sizes prop and alt attribute */}
-        {image ? (
-          <Image
-            src={image}
-            alt={`${title} anime poster`}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover transition-transform duration-300 group-hover:scale-110"
-            priority={false}
-            unoptimized
-            onError={(e) => {
-              // Fallback if image fails to load
-              const target = e.currentTarget as HTMLImageElement;
-              target.style.display = 'none';
-            }}
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-gray-400 text-sm">
-            No image
+      <div className="flex flex-col items-center text-center">
+        {/* Poster Node */}
+        <div className="relative w-40 h-56 bg-gray-800 rounded-2xl overflow-hidden shadow-lg transition-all duration-500 group-hover:shadow-[0_0_20px_rgba(var(--accent-rgb),0.3)] group-hover:-translate-y-2 group-hover:scale-105 border border-white/5">
+          {image ? (
+            <Image
+              src={image}
+              alt={title}
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
+              unoptimized
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gray-900 flex items-center justify-center text-gray-500 text-xs">No image</div>
+          )}
+          
+          {/* Badge Overlay */}
+          <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+             <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-white ${badgeColor}`}>
+              {badgeLabel}
+            </span>
           </div>
-        )}
-
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-        {/* Relation badge - top left */}
-        <div
-          className={`absolute top-3 left-3 ${badgeColor} text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg transition-all duration-300 group-hover:scale-110 z-10`}>
-          {badgeLabel}
         </div>
 
-        {/* Title and type - bottom, always visible on hover */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 text-white transition-all duration-300 z-10">
-          <h3 className="font-bold text-sm line-clamp-2 group-hover:text-accent">{title}</h3>
+        {/* Info */}
+        <div className="mt-4 px-2">
+          <h4 className="text-sm font-bold text-gray-200 line-clamp-2 leading-tight group-hover:text-accent transition-colors duration-300">
+            {title}
+          </h4>
           {animeDetail?.type && (
-            <p className="text-xs text-gray-300 mt-1">{animeDetail.type}</p>
+            <span className="text-[10px] text-gray-500 mt-1 uppercase font-semibold tracking-widest">{animeDetail.type}</span>
           )}
         </div>
       </div>

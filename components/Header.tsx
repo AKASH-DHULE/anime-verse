@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { User, Sparkles, Menu, X } from 'lucide-react';
+import { Sparkles, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Header() {
@@ -60,11 +60,8 @@ export default function Header() {
           })}
         </nav>
 
-        {/* Profile & Mobile Actions */}
+        {/* Mobile Actions */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center p-2 rounded-xl bg-gray-900/60 border border-gray-800 cursor-pointer hover:border-accent/50 hover:bg-gray-800 transition-all group">
-             <User className="w-5 h-5 text-gray-400 group-hover:text-accent transition-colors" />
-          </div>
           
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

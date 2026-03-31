@@ -13,6 +13,16 @@ async function fetchRelations(id: number | string) {
 }
 
 function computeOrder(relations: any[]) {
+  // Pre-filter: only keep relations that have anime entries
+  const animeRelations = relations
+    .map((rel) => {
+      const entries = Array.isArray(rel.entry) ? rel.entry : [rel.entry];
+      const filteredEntries = entries.filter((e: any) => e.type === 'anime');
+      if (filteredEntries.length === 0) return null;
+      return { ...rel, entry: filteredEntries };
+    })
+    .filter(Boolean);
+
   // Basic heuristic: include prequel(s) first, then main, then sequels, then movies/ovas/side-stories
   const group: any = {
     prequel: [],
@@ -21,7 +31,7 @@ function computeOrder(relations: any[]) {
     others: []
   };
 
-  relations.forEach((rel) => {
+  animeRelations.forEach((rel: any) => {
     if (rel.relation === 'Prequel') group.prequel.push(rel);
     else if (rel.relation === 'Sequel') group.sequel.push(rel);
     else group.others.push(rel);
