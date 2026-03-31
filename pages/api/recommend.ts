@@ -44,6 +44,7 @@ Each recommendation object must have exactly two keys:
 1. "title": The precise, official Romaji or English title of the anime as found on MyAnimeList/Jikan (e.g., "Sword Art Online" instead of "SAO").
 2. "reason": A brief, engaging 1-sentence reason why this fits the user's request.
 
+CRITICAL: Do NOT use double quotes inside the actual title or reason text, as it will break JSON parsing. Use single quotes instead if needed.
 Output ONLY valid JSON.`,
         },
         {
@@ -58,11 +59,18 @@ Output ONLY valid JSON.`,
 
     const responseText = chatCompletion.choices[0]?.message?.content ?? '{}';
 
-    // Parse the recommended list directly
-    const parsedData = JSON.parse(responseText);
-    const recommendations: Recommendation[] = parsedData.recommendations || [];
+    try {
+      // Parse the recommended list directly
+      const parsedData = JSON.parse(responseText);
+      const recommendations: Recommendation[] = parsedData.recommendations || [];
 
-    res.status(200).json({ recommendations });
+      res.status(200).json({ recommendations });
+    } catch (parseError) {
+      console.error('--- GROQ PARSE ERROR ---');
+      console.error('Raw Response:', responseText);
+      console.error('Error:', parseError);
+      throw new Error('Failed to parse AI response. Please try again.');
+    }
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     console.error('Groq API Error:', errorMsg);
