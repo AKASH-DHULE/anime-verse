@@ -46,7 +46,7 @@ export default function Home() {
           <p className="text-gray-400 text-lg">The most beloved anime series of all time</p>
 
           <div className="mt-10">
-            <TopAnimeCarousel items={data} isLoading={isLoading} error={error} />
+            <TopAnimeCarousel items={data} isLoading={isLoading} />
           </div>
 
           {error && (

@@ -7,10 +7,9 @@ import type { Anime } from '../types/anime';
 interface TopAnimeCarouselProps {
   items: Anime[] | undefined;
   isLoading: boolean;
-  error?: Error | null;
 }
 
-export default function TopAnimeCarousel({ items, isLoading, error }: TopAnimeCarouselProps) {
+export default function TopAnimeCarousel({ items, isLoading }: TopAnimeCarouselProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: 'left' | 'right') => {

@@ -51,7 +51,7 @@ export default function ErrorFallback({
           </p>
           <div className="h-px w-12 bg-white/10 rounded-full"></div>
           <p className="text-gray-500 text-sm italic">
-            "Sorry about that! I tried my best, but couldn't get the data."
+            &quot;Sorry about that! I tried my best, but couldn&apos;t get the data.&quot;
           </p>
         </div>
 
