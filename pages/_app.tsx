@@ -1,5 +1,6 @@
 import type { AppProps } from 'next/app';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import '../styles/globals.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -17,6 +18,7 @@ export default function App({ Component, pageProps }: AppProps) {
         </main>
         <Footer />
       </div>
+      <SpeedInsights />
     </QueryClientProvider>
   );
 }
