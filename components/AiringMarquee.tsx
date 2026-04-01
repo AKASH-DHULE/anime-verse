@@ -77,7 +77,7 @@ export default function AiringMarquee({ items, isLoading }: AiringMarqueeProps) 
                     <span className="text-[11px] font-bold text-yellow-500">{anime.score || 'N/A'}</span>
                   </div>
                   <span className="text-[11px] font-medium text-white/70 bg-white/10 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
-                    Currently Airing
+                    Top Airing
                   </span>
                 </div>
                 

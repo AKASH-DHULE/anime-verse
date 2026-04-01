@@ -5,11 +5,12 @@ import useTopAnime from '../hooks/useTopAnime';
 import useSeasonsNow from '../hooks/useSeasonsNow';
 import AnimeCard from '../components/AnimeCard';
 import SkeletonCard from '../components/SkeletonCard';
+import ErrorFallback from '../components/ErrorFallback';
 import type { Anime } from '../types/anime';
 
 export default function Home() {
   const { data, isLoading, error } = useTopAnime(1);
-  const { data: seasonNow, isLoading: loadingSeason } = useSeasonsNow();
+  const { data: seasonNow, isLoading: loadingSeason, error: seasonError } = useSeasonsNow();
 
   return (
     <div className="relative pb-24 overflow-hidden">
@@ -20,7 +21,15 @@ export default function Home() {
       <div className="max-w-6xl mx-auto relative z-10 px-4 pt-10">
         {/* Replace Hero with Auto-scrolling Marquee */}
         <div className="mb-20">
-          <AiringMarquee items={seasonNow} isLoading={loadingSeason} />
+          {seasonError ? (
+            <ErrorFallback 
+              error={seasonError} 
+              title="Error Loading Spotlight" 
+              className="w-full"
+            />
+          ) : (
+            <AiringMarquee items={seasonNow} isLoading={loadingSeason} />
+          )}
         </div>
 
         {/* Global Top 10 Anime Carousel - Now Second (First section below marquee) */}
@@ -40,7 +49,13 @@ export default function Home() {
             <TopAnimeCarousel items={data} isLoading={isLoading} error={error} />
           </div>
 
-          {error && <div className="mt-8 p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-center">Error loading top anime. Please try refreshing.</div>}
+          {error && (
+            <ErrorFallback 
+              error={error} 
+              title="Error Loading Top Anime" 
+              className="mt-10"
+            />
+          )}
         </section>
 
         {/* Current Season Section - Now Third */}
@@ -52,12 +67,12 @@ export default function Home() {
             </div>
             <div>
               <h2 className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">
-                CURRENTLY AIRING
+                TOP AIRING NOW
               </h2>
               <div className="w-16 h-1 bg-gradient-to-r from-orange-500 to-transparent rounded-full mt-1"></div>
             </div>
           </div>
-          <p className="text-gray-400 text-lg">The hottest anime airing right now</p>
+          <p className="text-gray-400 text-lg">The most popular series currently broadcasting</p>
 
           <div className="mt-8 sm:mt-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6">
             {loadingSeason && Array.from({ length: 10 }).map((_, i) => <SkeletonCard key={i} />)}

@@ -24,10 +24,6 @@ export default function TopAnimeCarousel({ items, isLoading, error }: TopAnimeCa
     }
   };
 
-  if (error) {
-    return <div className="text-red-400 p-4 bg-red-500/10 rounded-xl border border-red-500/20 text-center">Error loading top anime carousel.</div>;
-  }
-
   const displayItems = items?.slice(0, 10) || [];
 
   return (
