@@ -49,7 +49,6 @@ export default function AiringMarquee({ items, isLoading }: AiringMarqueeProps) 
           style={{
             animationDuration: `${itemCount * 5}s`,
             animationPlayState: paused ? 'paused' : 'running',
-            // @ts-ignore - custom CSS variable
             '--item-count': itemCount
           } as React.CSSProperties}
         >
