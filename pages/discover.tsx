@@ -103,7 +103,7 @@ export default function Discover() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-accent/20 blur-[100px] rounded-full mt-[-100px] pointer-events-none" />
           
           <div className="max-w-3xl mx-auto text-center relative z-10">
-            <h1 className="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight">
+            <h1 className="text-3xl md:text-6xl font-extrabold mb-4 md:mb-6 tracking-tight">
               AI <span className="text-accent">Discover</span> ✨
             </h1>
             <p className="text-gray-400 text-lg md:text-xl mb-10">
@@ -112,27 +112,27 @@ export default function Discover() {
 
             <form onSubmit={handleSearch} className="relative group">
               <div className="absolute inset-0 bg-accent/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div className="relative flex items-center bg-gray-900/80 backdrop-blur-md border border-gray-700/50 rounded-full p-2 shadow-2xl focus-within:border-accent/50 focus-within:ring-1 focus-within:ring-accent/50 transition-all z-10">
-                <div className="pl-4 pr-2 text-gray-400">
-                  <Sparkles className="w-5 h-5 text-accent" />
+              <div className="relative flex items-center bg-gray-900/80 backdrop-blur-md border border-gray-700/50 rounded-full p-1.5 md:p-2 shadow-2xl focus-within:border-accent/50 focus-within:ring-1 focus-within:ring-accent/50 transition-all z-10">
+                <div className="pl-3 md:pl-4 pr-1 md:pr-2 text-gray-400">
+                  <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-accent" />
                 </div>
                 <input
                   type="text"
-                  placeholder="e.g. An epic isekai with a touch of romance..."
+                  placeholder="e.g. An epic isekai with..."
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  className="w-full bg-transparent outline-none py-3 text-lg text-white placeholder-gray-500"
+                  className="w-full bg-transparent outline-none py-2 md:py-3 text-base md:text-lg text-white placeholder-gray-500"
                   disabled={loading}
                 />
                 <button
                   type="submit"
                   disabled={loading || !prompt.trim()}
-                  className="bg-accent hover:bg-accent/90 text-white px-6 py-3 rounded-full font-semibold flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-accent hover:bg-accent/90 text-white px-4 py-2 md:px-6 md:py-3 rounded-full font-semibold text-sm md:text-base flex items-center gap-1.5 md:gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
                   ) : (
-                    <Search className="w-5 h-5" />
+                    <Search className="w-4 h-4 md:w-5 md:h-5" />
                   )}
                   <span className="hidden sm:inline">{loading ? 'Thinking...' : 'Recommend'}</span>
                 </button>
@@ -166,14 +166,14 @@ export default function Discover() {
           {!loading && results.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20">
               {results.map((result, idx) => (
-                <div key={idx} className="flex flex-col gap-4 bg-gray-900/40 p-5 rounded-xl border border-gray-800 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${idx * 150}ms` }}>
+                <div key={idx} className="flex flex-col gap-3 md:gap-4 bg-gray-900/40 p-4 md:p-5 rounded-xl border border-gray-800 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${idx * 150}ms` }}>
                   
                   {/* AI Reason Bubble */}
-                  <div className="relative bg-gray-800 rounded-lg p-4 pt-8 shrink-0">
-                    <div className="absolute top-0 left-4 -translate-y-1/2 bg-accent text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-lg shadow-accent/20">
-                      <Sparkles className="w-3 h-3" /> AI Says
+                  <div className="relative bg-gray-800 rounded-lg p-3 pt-6 md:p-4 md:pt-8 shrink-0">
+                    <div className="absolute top-0 left-4 -translate-y-1/2 bg-accent text-white text-[10px] md:text-xs font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-lg shadow-accent/20">
+                      <Sparkles className="w-2.5 h-2.5 md:w-3 md:h-3" /> AI Says
                     </div>
-                    <p className="text-sm text-gray-300 italic">&quot;{result.recommendation.reason}&quot;</p>
+                    <p className="text-xs md:text-sm text-gray-300 italic">&quot;{result.recommendation.reason}&quot;</p>
                   </div>
 
                   {/* Anime Card or Fallback */}

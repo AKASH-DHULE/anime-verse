@@ -21,7 +21,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-800/50 bg-black/60 backdrop-blur-xl transition-all duration-300">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-3.5 sm:px-6 lg:px-8 py-4">
         
         {/* Logo Section */}
         <Link href="/" className="flex items-center gap-2.5 group">
@@ -31,7 +31,7 @@ export default function Header() {
               A
             </div>
           </div>
-          <span className="font-bold text-xl tracking-tight hidden sm:block">
+          <span className="font-bold text-base sm:text-xl tracking-tight">
             Anime<span className="text-accent">Verse</span>
           </span>
         </Link>

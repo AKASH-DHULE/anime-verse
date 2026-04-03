@@ -6,18 +6,23 @@ async function fetchSeasonalAndAiring() {
   try {
     // We try to get the current season's entries
     const res = await api.get('/seasons/now');
-    let data = res.data.data as Anime[];
+    const rawData = res.data.data as Anime[];
 
-    // If the seasonal list is empty or we're in a season transition (like April 1st),
-    // we want to ensure we still have something to show.
-    // First, let's try to prioritize 'Currently Airing'
+    // Deduplicate by mal_id to avoid repeats in the grid
+    const uniqueDict: Record<number, Anime> = {};
+    rawData.forEach(anime => {
+      if (!uniqueDict[anime.mal_id]) {
+        uniqueDict[anime.mal_id] = anime;
+      }
+    });
+    
+    let data = Object.values(uniqueDict);
+
+    // We want to prioritize 'Currently Airing', but ensure we have enough items (at least 10)
+    // to fill the home page grid nicely.
     const currentlyAiring = data.filter(anime => anime.status === 'Currently Airing');
     
-    // If we have 'Currently Airing' shows, we use them.
-    // If not (transition period), we include 'Not yet aired' but sort them carefully.
-    if (currentlyAiring.length < 5) {
-      // Keep everything but sort strictly
-    } else {
+    if (currentlyAiring.length >= 10) {
       data = currentlyAiring;
     }
 

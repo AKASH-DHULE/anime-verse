@@ -20,7 +20,7 @@ export default function Favorites() {
              <div className="p-3 bg-accent/10 rounded-2xl">
                <LayoutGrid className="w-8 h-8 text-accent" />
              </div>
-             <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
+             <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">
                MY <span className="text-accent">COLLECTION</span>
              </h1>
           </div>
@@ -30,8 +30,8 @@ export default function Favorites() {
         </section>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="bg-gray-900/40 backdrop-blur-md border border-gray-800 p-6 rounded-2xl flex items-center justify-between">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="bg-gray-900/40 backdrop-blur-md border border-gray-800 p-4 sm:p-6 rounded-2xl flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-rose-500/10 rounded-xl">
                 <Heart className="w-6 h-6 text-rose-500" />
@@ -43,7 +43,7 @@ export default function Favorites() {
             </div>
             <Sparkles className="w-5 h-5 text-gray-700" />
           </div>
-          <div className="bg-gray-900/40 backdrop-blur-md border border-gray-800 p-6 rounded-2xl flex items-center justify-between">
+          <div className="bg-gray-900/40 backdrop-blur-md border border-gray-800 p-4 sm:p-6 rounded-2xl flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-blue-500/10 rounded-xl">
                 <Eye className="w-6 h-6 text-blue-500" />
@@ -66,11 +66,11 @@ export default function Favorites() {
           
           {favorites.length === 0 ? (
             <div className="py-20 bg-gray-900/20 border border-dashed border-gray-800 rounded-3xl text-center">
-              <Ghost className="w-12 h-12 mx-auto mb-4 text-gray-700" />
-              <p className="text-gray-400 font-medium">No favorites yet. Go find some gems!</p>
+              <Ghost className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-4 text-gray-700" />
+              <p className="text-gray-400 font-medium px-4">No favorites yet. Go find some gems!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
               {favorites.map((a) => <AnimeCard key={a.mal_id} anime={a} />)}
             </div>
           )}
@@ -85,11 +85,11 @@ export default function Favorites() {
           
           {watchlist.length === 0 ? (
             <div className="py-20 bg-gray-900/20 border border-dashed border-gray-800 rounded-3xl text-center">
-              <Ghost className="w-12 h-12 mx-auto mb-4 text-gray-700" />
-              <p className="text-gray-400 font-medium">Your watchlist is empty. Add something to watch later!</p>
+              <Ghost className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-4 text-gray-700" />
+              <p className="text-gray-400 font-medium px-4">Your watchlist is empty. Add something to watch later!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
               {watchlist.map((a) => <AnimeCard key={a.mal_id} anime={a} />)}
             </div>
           )}

@@ -56,21 +56,23 @@ export default function SearchPage() {
       <div className="max-w-6xl mx-auto relative z-10 px-4">
         {/* Search Hero */}
         <section className="pt-20 pb-12 text-center animate-in fade-in slide-in-from-top-4 duration-700">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 flex items-center justify-center gap-3">
-            <Search className="w-8 h-8 text-accent" />
-            FIND YOUR <span className="text-accent text-transparent bg-clip-text bg-gradient-to-r from-accent to-blue-400">NEXT ANIME</span>
+          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4 flex items-start sm:items-center justify-center gap-2 sm:gap-4">
+            <Search className="w-7 h-7 sm:w-10 sm:h-10 text-accent mt-1 sm:mt-0 flex-shrink-0" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-blue-400 to-accent bg-[length:200%_auto] animate-gradient-x">
+              FIND YOUR NEXT ANIME
+            </span>
           </h1>
           <p className="text-gray-400 text-lg mb-10 max-w-2xl mx-auto">
             Search through thousands of anime series, movies, and specials from our massive database.
           </p>
 
-          <div className="max-w-3xl mx-auto mb-12">
-            <div className="flex flex-col md:flex-row gap-4 p-2 bg-gray-900/60 backdrop-blur-md border border-gray-800 rounded-2xl shadow-2xl focus-within:border-accent/40 transition-all">
+          <div className="max-w-3xl mx-auto mb-10">
+            <div className="flex flex-col md:flex-row gap-2 md:gap-4 p-1.5 md:p-2 bg-gray-900/60 backdrop-blur-md border border-gray-800 rounded-2xl shadow-2xl focus-within:border-accent/40 transition-all">
               <input
                 placeholder={showNewest ? 'Browsing newest anime... or type to search' : 'Search by name (e.g. Naruto, One Piece)...'}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="flex-1 bg-transparent border-none outline-none p-4 text-lg text-white placeholder-gray-600"
+                className="flex-1 bg-transparent border-none outline-none p-3 md:p-4 text-base md:text-lg text-white placeholder-gray-600"
               />
               <div className="flex items-center gap-2 p-1">
                 <select
@@ -79,16 +81,16 @@ export default function SearchPage() {
                     setSelectedGenre(e.target.value);
                     if (e.target.value === 'newest') setQuery('');
                   }}
-                  className="bg-gray-800 border-none outline-none px-4 py-3 rounded-xl text-sm font-medium text-gray-300 min-w-[150px] cursor-pointer hover:bg-gray-700 transition-colors"
+                  className="bg-gray-800 border-none outline-none px-3 py-2.5 md:px-4 md:py-3 rounded-xl text-xs sm:text-sm font-medium text-gray-300 min-w-[120px] md:min-w-[150px] cursor-pointer hover:bg-gray-700 transition-colors"
                 >
-                  <option value="newest">🆕 Newest First</option>
-                  <option value="all">All Genres</option>
+                  <option value="newest">🆕 Newest</option>
+                  <option value="all">Genres</option>
                   {genres?.map((g: Genre) => (
                     <option key={g.mal_id} value={String(g.mal_id)}>{g.name}</option>
                   ))}
                 </select>
                 <button
-                  className="bg-accent hover:bg-accent/90 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-accent/20 active:scale-95"
+                  className="bg-accent hover:bg-accent/90 text-white px-6 py-2.5 md:px-8 md:py-3 rounded-xl font-bold text-sm md:text-base transition-all shadow-lg shadow-accent/20 active:scale-95"
                 >
                   SEARCH
                 </button>
@@ -96,13 +98,13 @@ export default function SearchPage() {
             </div>
 
             {/* Quick Filters / Tags */}
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-sm">
-              <span className="text-gray-500 flex items-center gap-1"><Hash className="w-4 h-4" /> TRENDING:</span>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 text-sm">
+              <span className="text-gray-500 flex items-center gap-1 w-full sm:w-auto justify-center mb-1 sm:mb-0"><Hash className="w-4 h-4" /> TRENDING:</span>
               {popularGenres.map((g) => (
                 <button
                   key={g}
                   onClick={() => handleGenreClick(g)}
-                  className="px-4 py-1.5 rounded-full bg-gray-900 border border-gray-800 text-gray-400 hover:text-accent hover:border-accent/50 transition-all active:scale-90"
+                  className="px-3.5 py-1.5 rounded-full bg-gray-900 border border-gray-800 text-gray-400 hover:text-accent hover:border-accent/50 transition-all active:scale-95"
                 >
                   {g}
                 </button>
@@ -125,7 +127,7 @@ export default function SearchPage() {
         {/* Results Grid */}
         <div className="mt-8">
           {isLoading && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
               {Array.from({ length: 8 }).map((_, i) => (
                 <SkeletonCard key={i} />
               ))}
@@ -134,16 +136,16 @@ export default function SearchPage() {
 
           {!isLoading && results && results.length === 0 && (
             <div className="py-20 text-center animate-in fade-in zoom-in duration-500">
-               <div className="w-20 h-20 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-6 border border-gray-800">
-                 <Search className="w-10 h-10 text-gray-700" />
+               <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-6 border border-gray-800">
+                 <Search className="w-8 h-8 md:w-10 md:h-10 text-gray-700" />
                </div>
-               <h3 className="text-xl font-bold mb-2">No results found</h3>
-               <p className="text-gray-500">Try searching with a different name or genre.</p>
+               <h3 className="text-lg md:text-xl font-bold mb-2">No results found</h3>
+               <p className="text-gray-500 text-sm md:text-base">Try searching with a different name or genre.</p>
             </div>
           )}
 
           {!isLoading && results && results.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
               {results.map((r: Anime) => (
                 <AnimeCard key={r.mal_id} anime={r} />
               ))}

@@ -21,7 +21,7 @@ export default function ErrorFallback({
 
   return (
     <div className={className}>
-      <div className="relative overflow-hidden bg-gray-900/40 backdrop-blur-xl rounded-3xl border border-white/5 p-8 md:p-12 text-center group">
+      <div className="relative overflow-hidden bg-gray-900/40 backdrop-blur-xl rounded-3xl border border-white/5 p-6 md:p-12 text-center group">
         {/* Background glow effects */}
         <div className="absolute top-0 left-1/4 w-32 h-32 bg-accent/20 blur-[60px] rounded-full pointer-events-none"></div>
         <div className="absolute bottom-0 right-1/4 w-32 h-32 bg-pink-500/10 blur-[60px] rounded-full pointer-events-none"></div>
@@ -34,13 +34,13 @@ export default function ErrorFallback({
             alt="Error illustration"
             width={180}
             height={180}
-            className="relative z-10 drop-shadow-[0_0_20px_rgba(var(--accent-rgb),0.3)] animate-in zoom-in-50 duration-500 [mix-blend-mode:screen]"
+            className="relative z-10 w-[140px] md:w-[180px] h-[140px] md:h-[180px] mx-auto drop-shadow-[0_0_20px_rgba(var(--accent-rgb),0.3)] animate-in zoom-in-50 duration-500 [mix-blend-mode:screen]"
             unoptimized
           />
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-3 tracking-tight">
+        <h1 className="text-xl md:text-3xl font-extrabold text-white mb-3 tracking-tight">
           {isNetworkError ? 'Network Connection Lost!' : title}
         </h1>
 
