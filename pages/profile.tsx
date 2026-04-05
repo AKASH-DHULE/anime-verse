@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import NextImage from 'next/image';
 import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
 import { auth, db } from '../lib/firebase';
@@ -44,7 +45,8 @@ export default function Profile() {
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const img = new Image();
+      // Use window.Image to avoid conflict with NextImage
+      const img = new window.Image();
       img.onload = () => {
         // Compress using Canvas
         const canvas = document.createElement('canvas');
@@ -107,8 +109,12 @@ export default function Profile() {
       }
 
       setSuccess('Profile updated successfully! ✧');
-    } catch (err: any) {
-      setError(err.message || 'Failed to update profile');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'Failed to update profile');
+      } else {
+        setError('An unexpected error occurred.');
+      }
     } finally {
       setIsSaving(false);
     }
@@ -157,7 +163,15 @@ export default function Profile() {
                    {isUploading ? (
                      <Loader2 className="w-8 h-8 text-accent animate-spin" />
                    ) : photoUrl ? (
-                     <img src={photoUrl} alt="Avatar" className="w-full h-full object-cover" />
+                     <div className="relative w-full h-full">
+                       <NextImage 
+                         src={photoUrl} 
+                         alt="Avatar" 
+                         fill 
+                         className="object-cover" 
+                         unoptimized 
+                       />
+                     </div>
                    ) : (
                      <UserIcon className="w-12 h-12 text-gray-500 group-hover:text-accent transition-colors" />
                    )}

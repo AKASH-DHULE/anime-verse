@@ -1,6 +1,7 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { Sparkles, Menu, X, User as UserIcon, LogOut, LogIn } from 'lucide-react';
+import { Sparkles, Menu, X, User as UserIcon, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { signOut } from 'firebase/auth';
@@ -86,7 +87,15 @@ export default function Header() {
                 title="Profile"
               >
                 {displayPhoto ? (
-                  <img src={displayPhoto} alt="Profile" className="w-full h-full object-cover" />
+                  <div className="relative w-full h-full">
+                    <Image 
+                      src={displayPhoto} 
+                      alt="Profile" 
+                      fill 
+                      className="object-cover" 
+                      unoptimized={displayPhoto.startsWith('data:')}
+                    />
+                  </div>
                 ) : (
                   <span className="text-sm font-bold text-accent">
                     {displayName.charAt(0).toUpperCase()}
@@ -141,7 +150,15 @@ export default function Header() {
               className="w-9 h-9 rounded-full bg-gray-800 border-[1.5px] border-accent overflow-hidden shadow-[0_0_10px_rgba(168,85,247,0.3)] flex items-center justify-center transition-transform active:scale-95"
             >
               {displayPhoto ? (
-                <img src={displayPhoto} alt="Profile" className="w-full h-full object-cover" />
+                <div className="relative w-full h-full">
+                  <Image 
+                    src={displayPhoto} 
+                    alt="Profile" 
+                    fill 
+                    className="object-cover" 
+                    unoptimized={displayPhoto.startsWith('data:')}
+                  />
+                </div>
               ) : (
                 <span className="text-sm font-bold text-accent">
                   {displayName.charAt(0).toUpperCase()}

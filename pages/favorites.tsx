@@ -1,7 +1,6 @@
 import { useUserData } from '../hooks/useUserData';
 import AnimeCard from '../components/AnimeCard';
 import { Heart, Eye, Ghost, Sparkles, LayoutGrid } from 'lucide-react';
-import type { Anime } from '../types/anime';
 import { useAuth } from '../context/AuthContext';
 import Link from 'next/link';
 

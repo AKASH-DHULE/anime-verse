@@ -31,8 +31,12 @@ export default function Login() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push('/favorites');
-    } catch (err: any) {
-      setError(err.message || 'Failed to login. Please check your credentials.');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'Failed to login. Please check your credentials.');
+      } else {
+        setError('An unexpected error occurred.');
+      }
     } finally {
       setLoading(false);
     }
@@ -56,8 +60,12 @@ export default function Login() {
          });
       }
       router.push('/favorites');
-    } catch (err: any) {
-      setError(err.message || 'Failed to login with Google.');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'Failed to login with Google.');
+      } else {
+        setError('An unexpected error occurred during Google sign-in.');
+      }
     } finally {
       setLoading(false);
     }

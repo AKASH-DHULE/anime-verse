@@ -45,8 +45,12 @@ export default function Signup() {
       });
 
       router.push('/favorites');
-    } catch (err: any) {
-      setError(err.message || 'Failed to create an account.');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'Failed to create an account.');
+      } else {
+        setError('An unexpected error occurred during signup.');
+      }
     } finally {
       setLoading(false);
     }
@@ -70,8 +74,12 @@ export default function Signup() {
         });
       }
       router.push('/favorites');
-    } catch (err: any) {
-      setError(err.message || 'Failed to sign in with Google');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'Failed to sign in with Google');
+      } else {
+        setError('An unexpected error occurred during Google sign-in.');
+      }
     } finally {
       setLoading(false);
     }
