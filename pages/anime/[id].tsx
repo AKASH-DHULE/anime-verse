@@ -10,7 +10,8 @@ import WatchOrderList from '../../components/WatchOrderList';
 import ReviewCard from '../../components/ReviewCard';
 import SkeletonCard from '../../components/SkeletonCard';
 import ErrorFallback from '../../components/ErrorFallback';
-import useLocalStorage from '../../hooks/useLocalStorage';
+import { useUserData } from '../../hooks/useUserData';
+import { useAuth } from '../../context/AuthContext';
 import type { Anime } from '../../types/anime';
 import type { Genre } from '../../types/genre';
 import type { Review } from '../../types/review';
@@ -23,26 +24,32 @@ export default function AnimeDetails(): JSX.Element {
   const { data: relations, isLoading: loadingRelations } = useWatchOrder(id as string);
   const { data: streaming, isLoading: loadingStreaming } = useStreaming(id as string);
 
-  const [favorites, setFavorites] = useLocalStorage<Anime[]>('favorites', []);
-  const [watchlist, setWatchlist] = useLocalStorage<Anime[]>('watchlist', []);
+  const { user } = useAuth();
+  const { favorites, watchlist, toggleFavorite, toggleWatchlist } = useUserData();
 
-  const isFav = details ? favorites.some((f: Anime) => f.mal_id === details.mal_id) : false;
-  const isInWatchlist = details ? watchlist.some((w: Anime) => w.mal_id === details.mal_id) : false;
+  const isFav = details ? favorites?.some((f: Anime) => f.mal_id === details.mal_id) : false;
+  const isInWatchlist = details ? watchlist?.some((w: Anime) => w.mal_id === details.mal_id) : false;
 
-  const toggleFav = (e?: React.MouseEvent) => {
+  const toggleFav = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
     e?.preventDefault();
     if (!details) return;
-    if (isFav) setFavorites(favorites.filter((f) => f.mal_id !== details.mal_id));
-    else setFavorites([details, ...favorites]);
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    await toggleFavorite(details);
   };
 
-  const toggleWatch = (e?: React.MouseEvent) => {
+  const toggleWatch = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
     e?.preventDefault();
     if (!details) return;
-    if (isInWatchlist) setWatchlist(watchlist.filter((w) => w.mal_id !== details.mal_id));
-    else setWatchlist([details, ...watchlist]);
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    await toggleWatchlist(details);
   };
 
   if (!router.isReady || !id) {

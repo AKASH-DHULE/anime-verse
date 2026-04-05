@@ -1,11 +1,30 @@
-import useLocalStorage from '../hooks/useLocalStorage';
+import { useUserData } from '../hooks/useUserData';
 import AnimeCard from '../components/AnimeCard';
 import { Heart, Eye, Ghost, Sparkles, LayoutGrid } from 'lucide-react';
 import type { Anime } from '../types/anime';
+import { useAuth } from '../context/AuthContext';
+import Link from 'next/link';
 
 export default function Favorites() {
-  const [favorites] = useLocalStorage<Anime[]>('favorites', []);
-  const [watchlist] = useLocalStorage<Anime[]>('watchlist', []);
+  const { user } = useAuth();
+  const { favorites, watchlist, loading } = useUserData();
+
+  if (!user) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 text-center">
+        <Ghost className="w-16 h-16 text-gray-700 mb-6 animate-bounce" />
+        <h1 className="text-3xl font-bold mb-4">Identify Yourself</h1>
+        <p className="text-gray-400 mb-8 max-w-md">Connect to the AnimeVerse network to access your synced favorites and watchlist from anywhere.</p>
+        <Link href="/login" className="bg-gradient-to-r from-purple-500 to-pink-500 px-8 py-3 rounded-xl font-bold hover:opacity-90 transition">
+          Initialize Link (Login)
+        </Link>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return <div className="min-h-[80vh] flex items-center justify-center"><div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>;
+  }
 
   return (
     <div className="relative min-h-screen pb-24 overflow-hidden">

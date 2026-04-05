@@ -2,28 +2,37 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, Star, Plus, Check } from 'lucide-react';
 import type { Anime } from '../types/anime';
-import useLocalStorage from '../hooks/useLocalStorage';
+import { useUserData } from '../hooks/useUserData';
+import { useRouter } from 'next/router';
+import { useAuth } from '../context/AuthContext';
 
 export default function AnimeCard({ anime, rank }: { anime: Anime; rank?: number }) {
   const image = anime.images?.jpg?.image_url || anime.images?.webp?.image_url || '';
-  const [favorites, setFavorites] = useLocalStorage<Anime[]>('favorites', []);
-  const [watchlist, setWatchlist] = useLocalStorage<Anime[]>('watchlist', []);
+  const { user } = useAuth();
+  const { favorites, watchlist, toggleFavorite, toggleWatchlist } = useUserData();
+  const router = useRouter();
 
-  const isFav = favorites.some((f: Anime) => f.mal_id === anime.mal_id);
-  const isInWatchlist = watchlist.some((w: Anime) => w.mal_id === anime.mal_id);
+  const isFav = favorites?.some((f: Anime) => f.mal_id === anime.mal_id);
+  const isInWatchlist = watchlist?.some((w: Anime) => w.mal_id === anime.mal_id);
 
-  const toggleFav = (e?: React.MouseEvent) => {
+  const toggleFav = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
     e?.preventDefault();
-    if (isFav) setFavorites(favorites.filter((f) => f.mal_id !== anime.mal_id));
-    else setFavorites([anime, ...favorites]);
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    await toggleFavorite(anime);
   };
 
-  const toggleWatch = (e?: React.MouseEvent) => {
+  const toggleWatch = async (e?: React.MouseEvent) => {
     e?.stopPropagation();
     e?.preventDefault();
-    if (isInWatchlist) setWatchlist(watchlist.filter((w) => w.mal_id !== anime.mal_id));
-    else setWatchlist([anime, ...watchlist]);
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    await toggleWatchlist(anime);
   };
 
   return (
