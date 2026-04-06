@@ -8,6 +8,7 @@ import useWatchOrder from '../../hooks/useWatchOrder';
 import useStreaming from '../../hooks/useStreaming';
 import WatchOrderList from '../../components/WatchOrderList';
 import ReviewCard from '../../components/ReviewCard';
+import CommentSection from '../../components/CommentSection';
 import SkeletonCard from '../../components/SkeletonCard';
 import ErrorFallback from '../../components/ErrorFallback';
 import { useUserData } from '../../hooks/useUserData';
@@ -229,7 +230,7 @@ export default function AnimeDetails(): JSX.Element {
             {/* Left: Trailer + Synopsis */}
             <div className="lg:col-span-3 space-y-6">
               {/* Trailer */}
-              {anime.trailer?.embed_url && (
+              {anime.trailer?.embed_url ? (
                 <div className="rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/5 bg-gray-900 group/trailer">
                   <div className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-white/5">
                     <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
@@ -245,6 +246,31 @@ export default function AnimeDetails(): JSX.Element {
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                     />
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/5 bg-gray-900/40 backdrop-blur-sm flex flex-col items-center justify-center py-16 text-center aspect-video group/no-trailer relative">
+                  {/* Subtle background glow */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-accent/10 blur-[100px] rounded-full" />
+                  
+                  <div className="relative w-64 h-64 mb-6 transition-transform duration-700 ease-out group-hover/no-trailer:scale-105 pointer-events-none">
+                    <Image 
+                      src="/images/trailer_not_found.png" 
+                      alt="Trailer unavailable" 
+                      fill 
+                      className="object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]" 
+                      unoptimized 
+                    />
+                  </div>
+
+                  <div className="relative z-10 animate-fade-in px-6">
+                    <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-2 drop-shadow-md">
+                      Trailer is not available
+                    </h3>
+                    <p className="text-gray-400 text-sm max-w-md mx-auto flex items-center justify-center gap-2 font-medium">
+                      <span className="inline-flex w-2 h-2 rounded-full bg-accent animate-pulse" />
+                      Gomen nasai! We couldn&apos;t find an official preview for this title.
+                    </p>
                   </div>
                 </div>
               )}
@@ -300,7 +326,26 @@ export default function AnimeDetails(): JSX.Element {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500 italic">No streaming data available.</p>
+                  <div className="flex flex-col items-center justify-center py-12 text-center bg-white/5 rounded-2xl border border-white/5 group/no-stream transition-all hover:bg-white/[0.08] relative overflow-hidden">
+                    {/* Subtle background glow */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-blue-500/5 blur-[80px] rounded-full" />
+                    
+                    <div className="relative w-48 h-48 mb-4 transition-transform duration-700 ease-out group-hover/no-stream:scale-110 pointer-events-none">
+                      <Image 
+                        src="/images/streams_not_found.png" 
+                        alt="Streams unavailable" 
+                        fill 
+                        className="object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]" 
+                        unoptimized 
+                      />
+                    </div>
+                    <div className="relative z-10 px-6 animate-fade-in-up">
+                      <p className="text-white font-bold text-lg mb-1">Streams unavailable</p>
+                      <p className="text-gray-500 text-xs leading-relaxed max-w-[220px] mx-auto font-medium">
+                        We couldn&apos;t track down any official streaming sources for this title.
+                      </p>
+                    </div>
+                  </div>
                 )}
               </GlassPanel>
             </div>
@@ -318,9 +363,25 @@ export default function AnimeDetails(): JSX.Element {
               </div>
             )}
             {!loadingRelations && relations && relations.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                <Tv className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                <p>No related anime found for this series.</p>
+              <div className="flex flex-col items-center justify-center py-12 text-center bg-white/5 rounded-2xl border border-white/5 mt-2 group/no-order transition-all hover:bg-white/[0.08] relative overflow-hidden">
+                {/* Subtle background glow */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-purple-500/5 blur-[80px] rounded-full" />
+
+                <div className="relative w-48 h-48 mb-4 transition-transform duration-700 ease-out group-hover/no-order:scale-110 pointer-events-none">
+                  <Image 
+                    src="/images/watch_order_not_found.png" 
+                    alt="No related anime" 
+                    fill 
+                    className="object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]" 
+                    unoptimized 
+                  />
+                </div>
+                <div className="relative z-10 px-6 animate-fade-in-up">
+                  <p className="text-white font-bold text-lg mb-1">Single Entry Series</p>
+                  <p className="text-gray-500 text-sm font-medium">
+                    No related series or sequels found for this title.
+                  </p>
+                </div>
               </div>
             )}
             {!loadingRelations && relations && relations.length > 0 && (
@@ -331,8 +392,16 @@ export default function AnimeDetails(): JSX.Element {
           {/* Reviews */}
           <GlassPanel title="Community Reviews">
             {reviewsError && (
-              <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 p-4 rounded-xl mb-4">
-                ⚠️ Unable to load reviews: {(reviewsError as Error).message}
+              <div className="flex flex-col items-center justify-center py-12 text-center bg-red-950/10 rounded-2xl border border-red-500/20 mb-4 group/rev-error">
+                <div className="relative w-40 h-40 mb-4 transition-transform duration-500 group-hover/rev-error:scale-105">
+                  <Image src="/images/comment_error.png" alt="Error loading reviews" fill className="object-contain opacity-80" unoptimized />
+                </div>
+                <div className="px-6 animate-fade-in-up">
+                  <p className="text-red-400 font-bold text-lg mb-1">Review sync failed</p>
+                  <p className="text-red-500/60 text-xs font-medium bg-red-500/5 px-3 py-1.5 rounded-full border border-red-500/10 inline-block">
+                    {(reviewsError as Error).message}
+                  </p>
+                </div>
               </div>
             )}
             {loadingReviews && (
@@ -340,9 +409,26 @@ export default function AnimeDetails(): JSX.Element {
                 {Array.from({ length: 2 }).map((_, i) => <SkeletonCard key={i} />)}
               </div>
             )}
-            {!loadingReviews && reviews && reviews.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                <p>💬 No reviews available yet. Be the first to review!</p>
+            {!loadingReviews && reviews && reviews.length === 0 && !reviewsError && (
+              <div className="flex flex-col items-center justify-center py-12 text-center bg-white/5 rounded-2xl border border-white/5 my-2 group/no-reviews transition-all hover:bg-white/[0.08] relative overflow-hidden">
+                {/* Subtle background glow */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-amber-500/5 blur-[80px] rounded-full" />
+
+                <div className="relative w-48 h-48 mb-4 transition-transform duration-700 ease-out group-hover/no-reviews:scale-110 pointer-events-none">
+                  <Image 
+                    src="/images/reviews_not_found.png" 
+                    alt="No reviews" 
+                    fill 
+                    className="object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]" 
+                    unoptimized 
+                  />
+                </div>
+                <div className="relative z-10 px-6 animate-fade-in-up">
+                  <p className="text-white font-bold text-lg mb-1">No Reviews Yet</p>
+                  <p className="text-gray-500 text-sm font-medium">
+                    Be the first to share your thoughts on this series!
+                  </p>
+                </div>
               </div>
             )}
             {!loadingReviews && reviews && reviews.length > 0 && (
@@ -353,6 +439,8 @@ export default function AnimeDetails(): JSX.Element {
               </div>
             )}
           </GlassPanel>
+          
+          <CommentSection animeId={id as string} />
         </div>
       </div>
     </>
