@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { Mail, Lock, LogIn, AlertCircle, Sparkles, Cat, Heart, Eye, EyeOff } from 'lucide-react';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { Mail, Lock, LogIn, AlertCircle, Sparkles, Cat, Heart, Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
@@ -15,6 +15,10 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+  const [isResetMode, setIsResetMode] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState('');
   const router = useRouter();
   const { user } = useAuth();
 
@@ -54,6 +58,33 @@ export default function Login() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!auth || !resetEmail.trim()) {
+      setFormErrors({ email: 'Please enter your email address' });
+      return;
+    }
+
+    setResetLoading(true);
+    setError('');
+    setResetSuccess('');
+
+    try {
+      await sendPasswordResetEmail(auth, resetEmail.trim());
+      setResetSuccess('Password reset link sent! Please check your inbox.');
+      setResetEmail('');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        const errorCode = (err as { code?: string }).code || '';
+        setError(getAuthErrorMessage(errorCode));
+      } else {
+        setError('Failed to send reset email.');
+      }
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -109,9 +140,13 @@ export default function Login() {
           
           <div className="text-center mb-8">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2 flex items-center justify-center gap-2">
-              WELCOME <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">BACK</span> <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-pink-500" />
+              {isResetMode ? 'RESET' : 'WELCOME'} <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">{isResetMode ? 'PASSWORD' : 'BACK'}</span> <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-pink-500" />
             </h1>
-            <p className="text-gray-400 text-sm sm:text-base">Access your synced AnimeVerse collection.</p>
+            <p className="text-gray-400 text-sm sm:text-base">
+              {isResetMode 
+                ? 'We will send you a reset link if the account exists.' 
+                : 'Access your synced AnimeVerse collection.'}
+            </p>
           </div>
 
           {error && (
@@ -121,81 +156,153 @@ export default function Login() {
             </div>
           )}
 
-          <form onSubmit={handleLogin} noValidate className="space-y-4 sm:space-y-5">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300 ml-1">Email Address</label>
-              <div className="relative group">
-                <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none ${formErrors.email ? 'text-red-500' : 'group-focus-within:text-purple-500'} transition-colors`}>
-                  <Mail className="w-5 h-5 text-gray-500" />
-                </div>
-                <input 
-                  type="email" 
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (formErrors.email) setFormErrors({ ...formErrors, email: '' });
-                  }}
-                  className={`w-full bg-gray-950/50 border ${formErrors.email ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500' : 'border-gray-800 focus:border-purple-500 focus:ring-purple-500'} rounded-xl py-3 pl-11 pr-4 text-white placeholder-gray-600 transition-all outline-none`}
-                  placeholder="otaku@animeverse.com"
-                />
-              </div>
-              {formErrors.email && (
-                <p className="text-[10px] sm:text-xs font-bold text-red-500 ml-1 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
-                  <AlertCircle className="w-3 h-3" /> {formErrors.email}
-                </p>
-              )}
+          {resetSuccess && (
+            <div className="mb-6 p-4 bg-green-500/10 border border-green-500/50 rounded-xl flex items-center gap-3 text-green-500 animate-in fade-in slide-in-from-top-2">
+              <CheckCircle className="w-5 h-5 flex-shrink-0" />
+              <p className="text-sm font-medium">{resetSuccess}</p>
             </div>
+          )}
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-300 ml-1">Password</label>
-              <div className="relative group">
-                <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none ${formErrors.password ? 'text-red-500' : 'group-focus-within:text-pink-500'} transition-colors`}>
-                  <Lock className="w-5 h-5 text-gray-500" />
+          {isResetMode ? (
+            <form onSubmit={handleResetPassword} noValidate className="space-y-6">
+              <div className="space-y-2">
+                <div className="relative group">
+                  <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors`}>
+                    <Mail className="w-5 h-5 text-gray-500" />
+                  </div>
+                  <input 
+                    type="email" 
+                    value={resetEmail}
+                    onChange={(e) => {
+                      setResetEmail(e.target.value);
+                      if (formErrors.email) setFormErrors({ ...formErrors, email: '' });
+                    }}
+                    className={`w-full bg-gray-950/50 border ${formErrors.email ? 'border-red-500/50' : 'border-gray-800'} focus:border-purple-500 focus:ring-purple-500 rounded-xl py-3 pl-11 pr-4 text-white placeholder-gray-600 transition-all outline-none`}
+                    placeholder="Enter your email address"
+                  />
                 </div>
-                <input 
-                  type={showPassword ? 'text' : 'password'} 
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    if (formErrors.password) setFormErrors({ ...formErrors, password: '' });
-                  }}
-                  className={`w-full bg-gray-950/50 border ${formErrors.password ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500' : 'border-gray-800 focus:border-pink-500 focus:ring-pink-500'} rounded-xl py-3 pl-11 pr-12 text-white placeholder-gray-600 transition-all outline-none`}
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-pink-500 transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-              {formErrors.password && (
-                <p className="text-[10px] sm:text-xs font-bold text-red-500 ml-1 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
-                  <AlertCircle className="w-3 h-3" /> {formErrors.password}
-                </p>
-              )}
-            </div>
-
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="w-full relative group overflow-hidden rounded-xl p-[1px] mt-6 transform transition-all active:scale-95"
-            >
-              <span className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 opacity-70 group-hover:opacity-100 transition-opacity blur-sm"></span>
-              <span className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 opacity-100"></span>
-              <div className="relative bg-black/50 backdrop-blur-sm px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all group-hover:bg-transparent">
-                {loading ? (
-                  <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                ) : (
-                  <>
-                    <span className="font-bold tracking-wide">Login</span>
-                    <LogIn className="w-5 h-5" />
-                  </>
+                {formErrors.email && (
+                  <p className="text-[10px] sm:text-xs font-bold text-red-500 ml-1 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                    <AlertCircle className="w-3 h-3" /> {formErrors.email}
+                  </p>
                 )}
               </div>
-            </button>
-          </form>
+
+              <div className="space-y-4">
+                <button 
+                  type="submit" 
+                  disabled={resetLoading}
+                  className="w-full relative group overflow-hidden rounded-xl p-[1px] transform transition-all active:scale-95"
+                >
+                  <span className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 opacity-70 group-hover:opacity-100 transition-opacity blur-sm"></span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 opacity-100"></span>
+                  <div className="relative bg-black/50 backdrop-blur-sm px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all group-hover:bg-transparent">
+                    {resetLoading ? (
+                      <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    ) : (
+                      <span className="font-bold tracking-wide">Send Reset Link</span>
+                    )}
+                  </div>
+                </button>
+
+                <button 
+                  type="button" 
+                  onClick={() => setIsResetMode(false)}
+                  className="w-full flex items-center justify-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+                >
+                  <ArrowLeft className="w-4 h-4" /> Back to Login
+                </button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleLogin} noValidate className="space-y-4 sm:space-y-5">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300 ml-1">Email Address</label>
+                <div className="relative group">
+                  <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none ${formErrors.email ? 'text-red-500' : 'group-focus-within:text-purple-500'} transition-colors`}>
+                    <Mail className="w-5 h-5 text-gray-500" />
+                  </div>
+                  <input 
+                    type="email" 
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (formErrors.email) setFormErrors({ ...formErrors, email: '' });
+                    }}
+                    className={`w-full bg-gray-950/50 border ${formErrors.email ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500' : 'border-gray-800 focus:border-purple-500 focus:ring-purple-500'} rounded-xl py-3 pl-11 pr-4 text-white placeholder-gray-600 transition-all outline-none`}
+                    placeholder="otaku@animeverse.com"
+                  />
+                </div>
+                {formErrors.email && (
+                  <p className="text-[10px] sm:text-xs font-bold text-red-500 ml-1 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                    <AlertCircle className="w-3 h-3" /> {formErrors.email}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center ml-1">
+                  <label className="text-sm font-medium text-gray-300">Password</label>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setIsResetMode(true);
+                      setError('');
+                    }}
+                    className="text-[10px] sm:text-xs font-medium text-purple-400 hover:text-pink-400 transition-colors"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <div className="relative group">
+                  <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none ${formErrors.password ? 'text-red-500' : 'group-focus-within:text-pink-500'} transition-colors`}>
+                    <Lock className="w-5 h-5 text-gray-500" />
+                  </div>
+                  <input 
+                    type={showPassword ? 'text' : 'password'} 
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (formErrors.password) setFormErrors({ ...formErrors, password: '' });
+                    }}
+                    className={`w-full bg-gray-950/50 border ${formErrors.password ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500' : 'border-gray-800 focus:border-pink-500 focus:ring-pink-500'} rounded-xl py-3 pl-11 pr-12 text-white placeholder-gray-600 transition-all outline-none`}
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-pink-500 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+                {formErrors.password && (
+                  <p className="text-[10px] sm:text-xs font-bold text-red-500 ml-1 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                    <AlertCircle className="w-3 h-3" /> {formErrors.password}
+                  </p>
+                )}
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="w-full relative group overflow-hidden rounded-xl p-[1px] mt-6 transform transition-all active:scale-95"
+              >
+                <span className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 opacity-70 group-hover:opacity-100 transition-opacity blur-sm"></span>
+                <span className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 opacity-100"></span>
+                <div className="relative bg-black/50 backdrop-blur-sm px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all group-hover:bg-transparent">
+                  {loading ? (
+                    <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  ) : (
+                    <>
+                      <span className="font-bold tracking-wide">Login</span>
+                      <LogIn className="w-5 h-5" />
+                    </>
+                  )}
+                </div>
+              </button>
+            </form>
+          )}
 
           <div className="mt-6">
             <div className="relative">

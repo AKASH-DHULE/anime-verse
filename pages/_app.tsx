@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import '../styles/globals.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import OfflineOverlay from '../components/OfflineOverlay';
 import { useState } from 'react';
 import { AuthProvider } from '../context/AuthContext';
 
@@ -12,7 +13,8 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <div className="min-h-screen bg-black text-white">
+        <div className="min-h-screen bg-black text-white selection:bg-accent/30">
+          <OfflineOverlay />
           <Header />
           <main className="px-4 md:px-8 lg:px-16">
             <Component {...pageProps} />
