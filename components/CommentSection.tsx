@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Image from 'next/image';
-import { Send, MessageSquare, Star, MessageCircle, AlertCircle, Sparkles, Trash2, X, CheckCircle2 } from 'lucide-react';
+import { Send, MessageSquare, Star, MessageCircle, AlertCircle, Sparkles, Trash2, X } from 'lucide-react';
 import { useComments } from '../hooks/useComments';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/router';
@@ -11,7 +11,7 @@ interface CommentSectionProps {
   animeId: string;
   reviews?: Review[];
   loadingReviews?: boolean;
-  reviewsError?: any;
+  reviewsError?: unknown;
 }
 
 export default function CommentSection({ 
@@ -338,7 +338,7 @@ export default function CommentSection({
             <div className="relative z-10 px-10 animate-fade-in-up">
               <h4 className="text-white font-black text-3xl mb-3 tracking-tighter">Silence in the universe</h4>
               <p className="text-gray-500 text-base font-medium max-w-sm mx-auto leading-relaxed">
-                This series hasn't been reviewed yet. Be the first to break the silence and share your 10-star rating!
+                This series hasn&apos;t been reviewed yet. Be the first to break the silence and share your 10-star rating!
               </p>
             </div>
             

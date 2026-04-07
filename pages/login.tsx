@@ -47,7 +47,7 @@ export default function Login() {
       router.push('/favorites');
     } catch (err: unknown) {
       if (err instanceof Error) {
-        const errorCode = (err as any).code || '';
+        const errorCode = (err as { code?: string }).code || '';
         setError(getAuthErrorMessage(errorCode));
       } else {
         setError('An unexpected error occurred.');
@@ -77,7 +77,7 @@ export default function Login() {
       router.push('/favorites');
     } catch (err: unknown) {
       if (err instanceof Error) {
-        const errorCode = (err as any).code || '';
+        const errorCode = (err as { code?: string }).code || '';
         setError(getAuthErrorMessage(errorCode));
       } else {
         setError('An unexpected error occurred during Google sign-in.');

@@ -7,7 +7,6 @@ import useReviews from '../../hooks/useReviews';
 import useWatchOrder from '../../hooks/useWatchOrder';
 import useStreaming from '../../hooks/useStreaming';
 import WatchOrderList from '../../components/WatchOrderList';
-import ReviewCard from '../../components/ReviewCard';
 import CommentSection from '../../components/CommentSection';
 import SkeletonCard from '../../components/SkeletonCard';
 import ErrorFallback from '../../components/ErrorFallback';
@@ -15,7 +14,6 @@ import { useUserData } from '../../hooks/useUserData';
 import { useAuth } from '../../context/AuthContext';
 import type { Anime } from '../../types/anime';
 import type { Genre } from '../../types/genre';
-import type { Review } from '../../types/review';
 
 export default function AnimeDetails(): JSX.Element {
   const router = useRouter();
