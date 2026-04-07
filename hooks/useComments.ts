@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import { Comment } from '../types/comment';
@@ -16,7 +16,6 @@ export function useComments(animeId: string) {
       return;
     }
 
-    // using only 'where' to avoid Firestore requiring a composite index for 'where' + 'orderBy'
     const q = query(
       collection(db, 'comments'),
       where('animeId', '==', animeId)
@@ -32,6 +31,7 @@ export function useComments(animeId: string) {
           userName: data.userName,
           userPhoto: data.userPhoto,
           text: data.text,
+          rating: data.rating || 0,
           createdAt: data.createdAt ? (data.createdAt as Timestamp).toMillis() : Date.now(),
         } as Comment;
       });
@@ -50,8 +50,8 @@ export function useComments(animeId: string) {
     return () => unsubscribe();
   }, [animeId]);
 
-  const addComment = async (text: string) => {
-    if (!user || !db || !text.trim()) return false;
+  const addComment = async (text: string, rating: number) => {
+    if (!user || !db || !text.trim() || rating < 1) return false;
     
     try {
       await addDoc(collection(db, 'comments'), {
@@ -60,6 +60,7 @@ export function useComments(animeId: string) {
         userName: userProfile?.name || user.displayName || 'Anonymous',
         userPhoto: userProfile?.photoURL || user.photoURL || '',
         text: text.trim(),
+        rating,
         createdAt: serverTimestamp(),
       });
       return true;
@@ -69,5 +70,20 @@ export function useComments(animeId: string) {
     }
   };
 
-  return { comments, loading, error, addComment };
+  const deleteComment = async (commentId: string) => {
+    if (!user || !db) return false;
+    try {
+      await deleteDoc(doc(db, 'comments', commentId));
+      return true;
+    } catch (err) {
+      console.error('Error deleting comment:', err);
+      return false;
+    }
+  };
+
+  const averageRating = comments.length > 0
+    ? comments.reduce((acc, curr) => acc + (curr.rating || 0), 0) / comments.length
+    : 0;
+
+  return { comments, loading, error, addComment, deleteComment, averageRating };
 }

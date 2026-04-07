@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { Mail, Lock, User as UserIcon, UserPlus, AlertCircle, Sparkles, Cat, Heart } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, UserPlus, AlertCircle, Sparkles, Cat, Heart, Eye, EyeOff } from 'lucide-react';
 import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
+import { getAuthErrorMessage } from '../lib/authErrors';
 
 export default function Signup() {
   const [name, setName] = useState('');
@@ -13,6 +14,8 @@ export default function Signup() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const router = useRouter();
   const { user } = useAuth();
 
@@ -22,24 +25,37 @@ export default function Signup() {
     return null;
   }
 
+  const validateForm = () => {
+    const errors: { [key: string]: string } = {};
+    if (!name.trim()) errors.name = 'Please enter your name';
+    if (!email.trim()) errors.email = 'Please enter your email address';
+    if (!password) errors.password = 'Please enter a password';
+    else if (password.length < 6) errors.password = 'Password must be at least 6 characters';
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth || !db) return;
+
+    if (!validateForm()) return;
 
     setLoading(true);
     setError('');
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
       const newUser = userCredential.user;
 
-      await updateProfile(newUser, { displayName: name });
+      await updateProfile(newUser, { displayName: name.trim() });
 
       // Create their collection in Firestore
       const userRef = doc(db, 'users', newUser.uid);
       await setDoc(userRef, {
-        name: name,
-        email: email,
+        name: name.trim(),
+        email: email.trim(),
         favorites: [],
         watchlist: []
       });
@@ -47,7 +63,8 @@ export default function Signup() {
       router.push('/favorites');
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setError(err.message || 'Failed to create an account.');
+        const errorCode = (err as any).code || '';
+        setError(getAuthErrorMessage(errorCode));
       } else {
         setError('An unexpected error occurred during signup.');
       }
@@ -76,7 +93,8 @@ export default function Signup() {
       router.push('/favorites');
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setError(err.message || 'Failed to sign in with Google');
+        const errorCode = (err as any).code || '';
+        setError(getAuthErrorMessage(errorCode));
       } else {
         setError('An unexpected error occurred during Google sign-in.');
       }
@@ -112,63 +130,90 @@ export default function Signup() {
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-xl flex items-center gap-3 text-red-500 animate-in fade-in slide-in-from-top-2">
+            <div key={error} className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-xl flex items-center gap-3 text-red-500 animate-in fade-in slide-in-from-top-2 animate-shake">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <p className="text-sm font-medium">{error}</p>
             </div>
           )}
 
-          <form onSubmit={handleSignup} className="space-y-4 sm:space-y-4">
+          <form onSubmit={handleSignup} noValidate className="space-y-4 sm:space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-300 ml-1">Your Name</label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within:text-pink-500 transition-colors">
-                  <UserIcon className="w-5 h-5 text-gray-500 group-focus-within:text-pink-500" />
+                <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none ${formErrors.name ? 'text-red-500' : 'group-focus-within:text-pink-500'} transition-colors`}>
+                  <UserIcon className="w-5 h-5 text-gray-500" />
                 </div>
                 <input 
                   type="text" 
-                  required
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-gray-950/50 border border-gray-800 focus:border-pink-500 focus:ring-1 focus:ring-pink-500 rounded-xl py-3 pl-11 pr-4 text-white placeholder-gray-600 transition-all outline-none"
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (formErrors.name) setFormErrors({ ...formErrors, name: '' });
+                  }}
+                  className={`w-full bg-gray-950/50 border ${formErrors.name ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500' : 'border-gray-800 focus:border-pink-500 focus:ring-pink-500'} rounded-xl py-3 pl-11 pr-4 text-white placeholder-gray-600 transition-all outline-none`}
                   placeholder="Naruto Uzumaki"
                 />
               </div>
+              {formErrors.name && (
+                <p className="text-[10px] sm:text-xs font-bold text-red-500 ml-1 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                  <AlertCircle className="w-3 h-3" /> {formErrors.name}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-300 ml-1">Email Address</label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within:text-purple-500 transition-colors">
-                  <Mail className="w-5 h-5 text-gray-500 group-focus-within:text-purple-500" />
+                <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none ${formErrors.email ? 'text-red-500' : 'group-focus-within:text-purple-500'} transition-colors`}>
+                  <Mail className="w-5 h-5 text-gray-500" />
                 </div>
                 <input 
                   type="email" 
-                  required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-gray-950/50 border border-gray-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl py-3 pl-11 pr-4 text-white placeholder-gray-600 transition-all outline-none"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (formErrors.email) setFormErrors({ ...formErrors, email: '' });
+                  }}
+                  className={`w-full bg-gray-950/50 border ${formErrors.email ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500' : 'border-gray-800 focus:border-purple-500 focus:ring-purple-500'} rounded-xl py-3 pl-11 pr-4 text-white placeholder-gray-600 transition-all outline-none`}
                   placeholder="otaku@animeverse.com"
                 />
               </div>
+              {formErrors.email && (
+                <p className="text-[10px] sm:text-xs font-bold text-red-500 ml-1 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                  <AlertCircle className="w-3 h-3" /> {formErrors.email}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-300 ml-1">Password</label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within:text-pink-500 transition-colors">
-                  <Lock className="w-5 h-5 text-gray-500 group-focus-within:text-pink-500" />
+                <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none ${formErrors.password ? 'text-red-500' : 'group-focus-within:text-pink-500'} transition-colors`}>
+                  <Lock className="w-5 h-5 text-gray-500" />
                 </div>
                 <input 
-                  type="password" 
-                  required
+                  type={showPassword ? 'text' : 'password'} 
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-gray-950/50 border border-gray-800 focus:border-pink-500 focus:ring-1 focus:ring-pink-500 rounded-xl py-3 pl-11 pr-4 text-white placeholder-gray-600 transition-all outline-none"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (formErrors.password) setFormErrors({ ...formErrors, password: '' });
+                  }}
+                  className={`w-full bg-gray-950/50 border ${formErrors.password ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500' : 'border-gray-800 focus:border-pink-500 focus:ring-pink-500'} rounded-xl py-3 pl-11 pr-12 text-white placeholder-gray-600 transition-all outline-none`}
                   placeholder="••••••••"
-                  minLength={6}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-pink-500 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
+              {formErrors.password && (
+                <p className="text-[10px] sm:text-xs font-bold text-red-500 ml-1 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                  <AlertCircle className="w-3 h-3" /> {formErrors.password}
+                </p>
+              )}
             </div>
 
             <button 

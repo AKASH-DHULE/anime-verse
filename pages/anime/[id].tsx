@@ -389,58 +389,14 @@ export default function AnimeDetails(): JSX.Element {
             )}
           </GlassPanel>
 
-          {/* Reviews */}
-          <GlassPanel title="Community Reviews">
-            {reviewsError && (
-              <div className="flex flex-col items-center justify-center py-12 text-center bg-red-950/10 rounded-2xl border border-red-500/20 mb-4 group/rev-error">
-                <div className="relative w-40 h-40 mb-4 transition-transform duration-500 group-hover/rev-error:scale-105">
-                  <Image src="/images/comment_error.png" alt="Error loading reviews" fill className="object-contain opacity-80" unoptimized />
-                </div>
-                <div className="px-6 animate-fade-in-up">
-                  <p className="text-red-400 font-bold text-lg mb-1">Review sync failed</p>
-                  <p className="text-red-500/60 text-xs font-medium bg-red-500/5 px-3 py-1.5 rounded-full border border-red-500/10 inline-block">
-                    {(reviewsError as Error).message}
-                  </p>
-                </div>
-              </div>
-            )}
-            {loadingReviews && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {Array.from({ length: 2 }).map((_, i) => <SkeletonCard key={i} />)}
-              </div>
-            )}
-            {!loadingReviews && reviews && reviews.length === 0 && !reviewsError && (
-              <div className="flex flex-col items-center justify-center py-12 text-center bg-white/5 rounded-2xl border border-white/5 my-2 group/no-reviews transition-all hover:bg-white/[0.08] relative overflow-hidden">
-                {/* Subtle background glow */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-amber-500/5 blur-[80px] rounded-full" />
 
-                <div className="relative w-48 h-48 mb-4 transition-transform duration-700 ease-out group-hover/no-reviews:scale-110 pointer-events-none">
-                  <Image 
-                    src="/images/reviews_not_found.png" 
-                    alt="No reviews" 
-                    fill 
-                    className="object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]" 
-                    unoptimized 
-                  />
-                </div>
-                <div className="relative z-10 px-6 animate-fade-in-up">
-                  <p className="text-white font-bold text-lg mb-1">No Reviews Yet</p>
-                  <p className="text-gray-500 text-sm font-medium">
-                    Be the first to share your thoughts on this series!
-                  </p>
-                </div>
-              </div>
-            )}
-            {!loadingReviews && reviews && reviews.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {reviews.map((r: Review) => (
-                  <ReviewCard key={r.mal_id || r.date} review={r} />
-                ))}
-              </div>
-            )}
-          </GlassPanel>
           
-          <CommentSection animeId={id as string} />
+          <CommentSection 
+            animeId={id as string} 
+            reviews={reviews} 
+            loadingReviews={loadingReviews} 
+            reviewsError={reviewsError} 
+          />
         </div>
       </div>
     </>
