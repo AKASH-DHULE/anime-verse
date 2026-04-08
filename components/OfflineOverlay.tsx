@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { WifiOff, RefreshCcw, AlertTriangle } from 'lucide-react';
+import { WifiOff, RefreshCcw } from 'lucide-react';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 
 export default function OfflineOverlay() {
