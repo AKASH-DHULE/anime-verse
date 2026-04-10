@@ -55,7 +55,7 @@ export default function SearchPage() {
 
       <div className="max-w-6xl mx-auto relative z-10 px-4">
         {/* Search Hero */}
-        <section className="pt-20 pb-12 text-center animate-in fade-in slide-in-from-top-4 duration-700">
+        <section className="pt-24 pb-12 text-center animate-in fade-in slide-in-from-top-4 duration-700">
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4 flex items-start sm:items-center justify-center gap-2 sm:gap-4">
             <Search className="w-7 h-7 sm:w-10 sm:h-10 text-accent mt-1 sm:mt-0 flex-shrink-0" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-blue-400 to-accent bg-[length:200%_auto] animate-gradient-x">

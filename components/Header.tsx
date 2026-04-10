@@ -22,6 +22,7 @@ export default function Header() {
       icon: <Sparkles className="w-3.5 h-3.5" />, 
       isSpecial: true 
     },
+    { name: 'News', href: '/news' },
     { name: 'Favorites', href: '/favorites' },
   ];
 
@@ -36,7 +37,7 @@ export default function Header() {
   const displayPhoto = userProfile?.photoURL || user?.photoURL || '';
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-800/50 bg-black/60 backdrop-blur-xl transition-all duration-300">
+    <header className="sticky top-0 z-50 w-full border-b border-gray-800/50 bg-black/90 backdrop-blur-xl transition-all duration-300">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-3.5 sm:px-6 lg:px-8 py-4">
         
         {/* Logo Section */}

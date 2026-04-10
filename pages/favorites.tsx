@@ -3,10 +3,12 @@ import AnimeCard from '../components/AnimeCard';
 import { Heart, Eye, Ghost, Sparkles, LayoutGrid } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Link from 'next/link';
+import Image from 'next/image';
+import type { NewsArticle } from '../types/news';
 
 export default function Favorites() {
   const { user } = useAuth();
-  const { favorites, watchlist, loading } = useUserData();
+  const { favorites, watchlist, likedNews, loading } = useUserData();
 
   if (!user) {
     return (
@@ -33,7 +35,7 @@ export default function Favorites() {
 
       <div className="max-w-6xl mx-auto relative z-10 px-4">
         {/* Header Section */}
-        <section className="pt-20 pb-12 animate-in fade-in slide-in-from-top-4 duration-700">
+        <section className="pt-24 pb-12 animate-in fade-in slide-in-from-top-4 duration-700">
           <div className="flex items-center gap-3 mb-4">
              <div className="p-3 bg-accent/10 rounded-2xl">
                <LayoutGrid className="w-8 h-8 text-accent" />
@@ -75,11 +77,57 @@ export default function Favorites() {
           </div>
         </div>
 
+        {/* Liked News Section */}
+        {likedNews.length > 0 && (
+          <section className="mb-20 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+            <div className="flex items-center gap-3 mb-8 border-b border-gray-800 pb-4">
+               <div className="relative">
+                 <Sparkles className="w-6 h-6 text-yellow-500 animate-pulse" />
+                 <div className="absolute inset-0 bg-yellow-500/20 blur-lg"></div>
+               </div>
+              <h2 className="text-2xl font-bold uppercase tracking-wider">News Updates</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {likedNews.map((news: NewsArticle) => (
+                <div key={news.id || news.url} className="group relative bg-gray-900/40 backdrop-blur-xl border border-gray-800 rounded-2xl overflow-hidden hover:border-accent/50 transition-all duration-500">
+                  <Link href={`/news/${news.id || ''}`} className="block aspect-video relative overflow-hidden">
+                    <Image 
+                      src={news.image || news.images?.jpg?.image_url || '/placeholder-news.jpg'} 
+                      alt={news.title}
+                      fill
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                    <div className="absolute top-2 left-2 px-2 py-1 bg-accent/90 text-[10px] font-bold rounded uppercase tracking-tighter z-10">
+                      News
+                    </div>
+                  </Link>
+                  <div className="p-4">
+                    <h3 className="font-bold line-clamp-2 mb-2 group-hover:text-accent transition-colors">
+                      <Link href={`/news/${news.id || ''}`}>
+                        {news.title}
+                      </Link>
+                    </h3>
+                    <p className="text-xs text-gray-500 mb-4">{new Date(news.date).toLocaleDateString()}</p>
+                    <Link 
+                      href={`/news/${news.id || ''}`} 
+                      className="text-xs font-bold text-accent uppercase tracking-widest hover:underline"
+                    >
+                      Read Full Article
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Favorites Section */}
         <section className="mb-20 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
           <div className="flex items-center gap-3 mb-8 border-b border-gray-800 pb-4">
             <Heart className="w-6 h-6 text-rose-500" />
-            <h2 className="text-2xl font-bold">Favorites</h2>
+            <h2 className="text-2xl font-bold uppercase tracking-wider">My Favorites</h2>
           </div>
           
           {favorites.length === 0 ? (
@@ -89,7 +137,12 @@ export default function Favorites() {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-              {favorites.map((a) => <AnimeCard key={a.mal_id} anime={a} />)}
+              {favorites.map((a) => (
+                <div key={a.mal_id} className="relative group">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-rose-500 to-accent rounded-2xl opacity-0 group-hover:opacity-20 blur transition duration-500"></div>
+                  <AnimeCard anime={a} />
+                </div>
+              ))}
             </div>
           )}
         </section>
@@ -98,7 +151,7 @@ export default function Favorites() {
         <section className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
           <div className="flex items-center gap-3 mb-8 border-b border-gray-800 pb-4">
             <Eye className="w-6 h-6 text-blue-500" />
-            <h2 className="text-2xl font-bold">Watchlist</h2>
+            <h2 className="text-2xl font-bold uppercase tracking-wider">Watchlist</h2>
           </div>
           
           {watchlist.length === 0 ? (
@@ -108,7 +161,12 @@ export default function Favorites() {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-              {watchlist.map((a) => <AnimeCard key={a.mal_id} anime={a} />)}
+              {watchlist.map((a) => (
+                <div key={a.mal_id} className="relative group">
+                   <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl opacity-0 group-hover:opacity-20 blur transition duration-500"></div>
+                   <AnimeCard anime={a} />
+                </div>
+              ))}
             </div>
           )}
         </section>

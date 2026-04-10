@@ -8,12 +8,14 @@ export function useUserData() {
   const { user } = useAuth();
   const [favorites, setFavorites] = useState<Anime[]>([]);
   const [watchlist, setWatchlist] = useState<Anime[]>([]);
+  const [likedNews, setLikedNews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user || !db) {
       setFavorites([]);
       setWatchlist([]);
+      setLikedNews([]);
       setLoading(false);
       return;
     }
@@ -24,6 +26,7 @@ export function useUserData() {
         const data = docSnap.data();
         setFavorites(data.favorites || []);
         setWatchlist(data.watchlist || []);
+        setLikedNews(data.likedNews || []);
       }
       setLoading(false);
     }, (error) => {
@@ -35,21 +38,17 @@ export function useUserData() {
   }, [user]);
 
   const toggleFavorite = async (anime: Anime) => {
-    if (!user || !db) return false; // Not logged in
+    if (!user || !db) return false;
     const docRef = doc(db, 'users', user.uid);
     const isFav = favorites.some(a => a.mal_id === anime.mal_id);
     
     try {
-      // Create document if it doesn't exist
       const docSnap = await getDoc(docRef);
       if (!docSnap.exists()) {
-         await setDoc(docRef, { favorites: [], watchlist: [] });
+         await setDoc(docRef, { favorites: [], watchlist: [], likedNews: [] });
       }
 
       if (isFav) {
-        // Find exact anime object to remove (firestore arrayRemove requires exact match, 
-        // so it's safer to filter and set the new array, but arrayRemove might work if the object is exactly the same)
-        // A safer approach:
         const newFavs = favorites.filter(a => a.mal_id !== anime.mal_id);
         await updateDoc(docRef, { favorites: newFavs });
       } else {
@@ -63,14 +62,14 @@ export function useUserData() {
   };
 
   const toggleWatchlist = async (anime: Anime) => {
-    if (!user || !db) return false; // Not logged in
+    if (!user || !db) return false;
     const docRef = doc(db, 'users', user.uid);
     const isListed = watchlist.some(a => a.mal_id === anime.mal_id);
     
     try {
       const docSnap = await getDoc(docRef);
       if (!docSnap.exists()) {
-         await setDoc(docRef, { favorites: [], watchlist: [] });
+         await setDoc(docRef, { favorites: [], watchlist: [], likedNews: [] });
       }
 
       if (isListed) {
@@ -86,5 +85,29 @@ export function useUserData() {
     }
   };
 
-  return { favorites, watchlist, loading, toggleFavorite, toggleWatchlist };
+  const toggleNewsLike = async (newsItem: any) => {
+    if (!user || !db) return false;
+    const docRef = doc(db, 'users', user.uid);
+    const isLiked = likedNews.some(n => n.url === newsItem.url);
+
+    try {
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) {
+        await setDoc(docRef, { favorites: [], watchlist: [], likedNews: [] });
+      }
+
+      if (isLiked) {
+        const newLiked = likedNews.filter(n => n.url !== newsItem.url);
+        await updateDoc(docRef, { likedNews: newLiked });
+      } else {
+        await updateDoc(docRef, { likedNews: arrayUnion(newsItem) });
+      }
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  return { favorites, watchlist, likedNews, loading, toggleFavorite, toggleWatchlist, toggleNewsLike };
 }

@@ -3,14 +3,17 @@ import AiringMarquee from '../components/AiringMarquee';
 import TopAnimeCarousel from '../components/TopAnimeCarousel';
 import useTopAnime from '../hooks/useTopAnime';
 import useSeasonsNow from '../hooks/useSeasonsNow';
+import useNews from '../hooks/useNews';
 import AnimeCard from '../components/AnimeCard';
 import SkeletonCard from '../components/SkeletonCard';
 import ErrorFallback from '../components/ErrorFallback';
+import NewsPopup from '../components/NewsPopup';
 import type { Anime } from '../types/anime';
 
 export default function Home() {
   const { data, isLoading, error } = useTopAnime(1);
   const { data: seasonNow, isLoading: loadingSeason, error: seasonError } = useSeasonsNow();
+  const { data: news = [] } = useNews(5);
 
   return (
     <div className="relative pb-24 overflow-hidden">
@@ -18,7 +21,7 @@ export default function Home() {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/10 blur-[120px] rounded-full pointer-events-none -mr-48 -mt-24"></div>
       <div className="absolute top-[800px] left-0 w-[600px] h-[600px] bg-accent/5 blur-[150px] rounded-full pointer-events-none -ml-64"></div>
 
-      <div className="max-w-6xl mx-auto relative z-10 px-4 pt-10">
+      <div className="max-w-6xl mx-auto relative z-10 px-4 pt-24">
         {/* Replace Hero with Auto-scrolling Marquee */}
         <div className="mb-20">
           {seasonError ? (
@@ -89,6 +92,9 @@ export default function Home() {
           </div>
         </section>
       </div>
+
+      {/* News Rotation Popup - Fixed Bottom */}
+      <NewsPopup newsItems={news} />
     </div>
   );
 }

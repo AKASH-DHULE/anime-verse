@@ -98,7 +98,7 @@ export default function Discover() {
 
       <div className="min-h-screen bg-background pb-16">
         {/* Hero Section */}
-        <section className="pt-20 pb-12 px-4 relative overflow-hidden">
+        <section className="pt-24 pb-12 px-4 relative overflow-hidden">
           {/* Background decoration */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-accent/20 blur-[100px] rounded-full mt-[-100px] pointer-events-none" />
           
