@@ -30,18 +30,21 @@ export default function NewsCard({ news, featured }: NewsCardProps) {
 
   const handleShare = async (e: React.MouseEvent) => {
     e.preventDefault();
+    const localUrl = `${window.location.origin}/news/${news.id}`;
     const shareData = {
       title: news.title,
       text: news.excerpt,
-      url: news.url,
+      url: localUrl,
     };
 
     try {
       if (navigator.share) {
         await navigator.share(shareData);
       } else {
-        await navigator.clipboard.writeText(news.url);
-        alert('Link copied to clipboard!');
+        await navigator.clipboard.writeText(localUrl);
+        // We could use a global toast here, but for now we'll match the [slug] logic if we had state.
+        // Since NewsCard is reused, maybe a global toast context would be better, 
+        // but for now I'll just change the URL and let the browser's native share handle it.
       }
     } catch (err) {
       console.error('Error sharing:', err);

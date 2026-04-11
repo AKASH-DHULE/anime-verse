@@ -12,8 +12,9 @@ import {
   ChevronRight,
   TrendingUp,
 } from 'lucide-react';
-import Link from 'next/link';
+import Head from 'next/head';
 import Image from 'next/image';
+import Link from 'next/link';
 import DOMPurify from 'isomorphic-dompurify';
 import { NewsArticle } from '../../types/news';
 import { useAuth } from '../../context/AuthContext';
@@ -25,6 +26,7 @@ export default function NewsDetail() {
   const { slug } = router.query;
   const { user } = useAuth();
   const { likedNews, toggleNewsLike } = useUserData();
+  const [showToast, setShowToast] = React.useState(false);
 
   // Fetch news list and find by slug
   const { data: newsItems = [], isLoading, error } = useQuery({
@@ -61,7 +63,8 @@ export default function NewsDetail() {
         });
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        alert('Link copied to clipboard!');
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
       }
     } catch (err) {
       console.error('Error sharing:', err);
@@ -97,10 +100,61 @@ export default function NewsDetail() {
     );
   }
 
-  const sanitizedContent = article.content ? DOMPurify.sanitize(article.content) : '';
+  // Function to extract YouTube ID from content
+  const extractYoutubeId = (content: string) => {
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/gi;
+    const matches = Array.from(content.matchAll(regex));
+    if (matches.length > 0) {
+      // Return the most recent (last found in HTML usually)
+      return matches[matches.length - 1][1];
+    }
+    return null;
+  };
+
+  const decorateContent = (content: string) => {
+    if (!content) return '';
+    
+    let decorated = content;
+
+    // Highlight Dates (e.g., April 11, 2024, Fall 2024, July)
+    const dateRegex = /\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+\d{4})?|\b(?:Spring|Summer|Fall|Winter)\s+\d{4}\b/gi;
+    decorated = decorated.replace(dateRegex, (match) => `<span class="highlight-date">${match}</span>`);
+
+    // Highlight Release Keywords
+    const releaseKeywords = /\b(?:Premieres?|Launches?|Debuts?|Releases?|Opening|Starts? streaming|Announces?|Reveals?)\b/gi;
+    decorated = decorated.replace(releaseKeywords, (match) => `<span class="highlight-action">${match}</span>`);
+
+    // Highlight Platforms
+    const platforms = /\b(?:Netflix|Crunchyroll|Disney\+|Hulu|Amazon Prime|HIDIVE|YouTube|Steam|Switch|PS5|Xbox)\b/gi;
+    decorated = decorated.replace(platforms, (match) => `<span class="highlight-platform">${match}</span>`);
+
+    // Highlight Importance
+    const importance = /\b(?:Official|Announcements?|PV|Trailer|Teaser|Main Visual|Key Visual|Special)\b/gi;
+    decorated = decorated.replace(importance, (match) => `<span class="highlight-imp">${match}</span>`);
+
+    return decorated;
+  };
+
+  const videoId = article?.content ? extractYoutubeId(article.content) : null;
+  const decoratedContent = article?.content ? decorateContent(article.content) : '';
+  const sanitizedContent = decoratedContent ? DOMPurify.sanitize(decoratedContent) : '';
+
+  const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const shareTitle = article ? `${article.title} | AnimeVerse News` : 'Anime News';
 
   return (
     <div className="relative min-h-screen bg-gray-950 pb-24 overflow-hidden">
+      <Head>
+        <title>{shareTitle}</title>
+        <meta name="description" content={article.excerpt} />
+        <meta property="og:title" content={shareTitle} />
+        <meta property="og:description" content={article.excerpt} />
+        <meta property="og:image" content={article.image || '/placeholder-news.jpg'} />
+        <meta property="og:url" content={pageUrl} />
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Head>
+
       {/* Decorative Background Elements */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-gradient-to-b from-accent/10 to-transparent pointer-events-none"></div>
       <div className="absolute top-[20%] right-[-10%] w-[500px] h-[500px] bg-blue-500/5 blur-[120px] rounded-full pointer-events-none"></div>
@@ -146,8 +200,17 @@ export default function NewsDetail() {
 
       {/* Content Section */}
       <div className="max-w-4xl mx-auto px-4 -mt-10 relative z-30">
-        <div className="bg-gray-900/60 backdrop-blur-2xl border border-white/5 rounded-[2.5rem] p-6 md:p-12 shadow-2xl">
+        <div className="bg-gray-900/60 backdrop-blur-2xl border border-white/5 rounded-[2.5rem] p-6 md:p-12 shadow-2xl relative">
           
+          {/* Toast Notification */}
+          {showToast && (
+            <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-4 duration-300">
+              <div className="bg-accent text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-xs shadow-2xl shadow-accent/40 flex items-center gap-3">
+                <Share2 className="w-4 h-4" /> Link Copied to Clipboard
+              </div>
+            </div>
+          )}
+
           {/* Article Info Bar */}
           <div className="flex flex-wrap items-center justify-between gap-6 pb-8 border-b border-white/5 mb-10">
             <div className="flex items-center gap-4">
@@ -181,6 +244,28 @@ export default function NewsDetail() {
               </button>
             </div>
           </div>
+
+          {/* Trailer Section */}
+          {videoId && (
+            <div className="mb-12 group">
+              <div className="flex items-center gap-2 mb-4 text-accent">
+                <TrendingUp className="w-4 h-4" />
+                <span className="text-[10px] uppercase font-black tracking-[0.2em]">Latest Transmission</span>
+              </div>
+              <div className="relative aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-gray-950">
+                <iframe
+                  src={`https://www.youtube.com/embed/${videoId}`}
+                  title="Anime Trailer"
+                  className="absolute inset-0 w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+              <p className="mt-4 text-gray-500 text-[9px] uppercase font-bold tracking-widest text-center italic">
+                Video extracted from official sources
+              </p>
+            </div>
+          )}
 
           {/* Article Text */}
           <div 
@@ -258,15 +343,57 @@ export default function NewsDetail() {
         .prose img {
           width: 100%;
           height: auto;
-          margin: 2rem 0;
+          margin: 2.5rem 0;
+          border-radius: 2rem;
+          box-shadow: 0 20px 50px -15px rgba(0,0,0,0.5);
         }
         .prose ul, .prose ol {
-          margin-bottom: 2rem;
+          margin-bottom: 2.5rem;
           padding-left: 1.5rem;
         }
         .prose li {
-          margin-bottom: 0.5rem;
+          margin-bottom: 0.75rem;
           list-style: disc;
+          color: #9ca3af;
+        }
+        .prose p {
+          margin-bottom: 1.75rem;
+        }
+        .highlight-date {
+          color: #fbbf24;
+          font-weight: 900;
+          background: rgba(251, 191, 36, 0.1);
+          padding: 2px 6px;
+          border-radius: 6px;
+          border: 1px solid rgba(251, 191, 36, 0.2);
+        }
+        .highlight-action {
+          color: #ec4899;
+          font-weight: 900;
+          text-transform: uppercase;
+          font-style: italic;
+          letter-spacing: -0.02em;
+        }
+        .highlight-platform {
+          color: #60a5fa;
+          font-weight: 900;
+          border-bottom: 2px solid rgba(96, 165, 250, 0.4);
+        }
+        .highlight-imp {
+          color: #10b981;
+          font-weight: 900;
+          text-transform: uppercase;
+          background: rgba(16, 185, 129, 0.1);
+          padding: 1px 4px;
+          border-radius: 4px;
+        }
+        /* Style for existing iframe if any */
+        .prose iframe {
+          width: 100%;
+          aspect-ratio: 16/9;
+          border-radius: 1.5rem;
+          margin: 2rem 0;
+          background: #000;
         }
       `}</style>
     </div>
