@@ -143,7 +143,7 @@ export default function NewsDetail() {
   const shareTitle = article ? `${article.title} | AnimeVerse News` : 'Anime News';
 
   return (
-    <div className="relative min-h-screen bg-gray-950 pb-24 overflow-hidden">
+    <div className="relative min-h-screen bg-gray-950 pb-40 overflow-hidden">
       <Head>
         <title>{shareTitle}</title>
         <meta name="description" content={article.excerpt} />
@@ -160,7 +160,7 @@ export default function NewsDetail() {
       <div className="absolute top-[20%] right-[-10%] w-[500px] h-[500px] bg-blue-500/5 blur-[120px] rounded-full pointer-events-none"></div>
 
       {/* Hero Section */}
-      <div className="relative h-[40vh] md:h-[60vh] w-full overflow-hidden">
+      <div className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden">
         <Image 
           src={article.image || '/placeholder-news.jpg'} 
           alt={article.title}
@@ -169,29 +169,32 @@ export default function NewsDetail() {
           className="w-full h-full object-cover"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/40 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/20 to-transparent"></div>
         
-        <div className="absolute bottom-0 left-0 w-full p-4 md:p-12 z-20">
+        {/* Top Navigation */}
+        <div className="absolute top-6 left-4 md:left-12 z-50">
+          <Link 
+            href="/news"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-black/40 hover:bg-accent backdrop-blur-xl rounded-xl text-white transition-all border border-white/10 group shadow-2xl"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> <span className="hidden sm:inline">Back</span>
+          </Link>
+        </div>
+
+        <div className="absolute bottom-0 left-0 w-full p-6 md:p-12 z-20">
           <div className="max-w-4xl mx-auto">
-            <Link 
-              href="/news"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-xl text-gray-300 hover:text-white transition-all mb-6 border border-white/5 group"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to News
-            </Link>
-            
-            <div className="flex flex-wrap items-center gap-4 mb-4">
+            <div className="flex flex-wrap items-center gap-3 mb-4">
               {article.categories?.map(cat => (
-                <span key={cat} className="px-3 py-1 bg-accent text-white text-[10px] font-black rounded-lg uppercase tracking-wider shadow-lg shadow-accent/20">
+                <span key={cat} className="px-3 py-1 bg-accent text-white text-[9px] sm:text-[10px] font-black rounded-lg uppercase tracking-wider shadow-lg shadow-accent/20">
                   {cat}
                 </span>
               ))}
-              <span className="flex items-center gap-1.5 text-gray-400 text-xs font-bold">
+              <span className="flex items-center gap-1.5 text-gray-400 text-[10px] sm:text-xs font-bold">
                 <Calendar className="w-3.5 h-3.5" /> {new Date(article.date).toLocaleDateString()}
               </span>
             </div>
             
-            <h1 className="text-2xl md:text-5xl lg:text-6xl font-black text-white leading-tight uppercase italic tracking-tighter">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white leading-[1.1] uppercase italic tracking-tighter drop-shadow-2xl">
               {article.title}
             </h1>
           </div>
@@ -199,8 +202,8 @@ export default function NewsDetail() {
       </div>
 
       {/* Content Section */}
-      <div className="max-w-4xl mx-auto px-4 -mt-10 relative z-30">
-        <div className="bg-gray-900/60 backdrop-blur-2xl border border-white/5 rounded-[2.5rem] p-6 md:p-12 shadow-2xl relative">
+      <div className="max-w-4xl mx-auto px-4 -mt-6 md:-mt-12 relative z-30">
+        <div className="bg-gray-950/80 md:bg-gray-900/60 backdrop-blur-3xl border border-white/10 rounded-[2rem] md:rounded-[2.5rem] p-5 sm:p-8 md:p-12 shadow-2xl relative">
           
           {/* Toast Notification */}
           {showToast && (
@@ -269,7 +272,7 @@ export default function NewsDetail() {
 
           {/* Article Text */}
           <div 
-            className="prose prose-invert prose-accent max-w-none text-gray-300 leading-relaxed text-lg 
+            className="prose prose-invert prose-accent max-w-none text-gray-300 leading-relaxed text-base md:text-lg 
               prose-headings:text-white prose-headings:font-black prose-headings:italic prose-headings:tracking-tighter
               prose-a:text-accent hover:prose-a:underline
               prose-img:rounded-3xl prose-img:border prose-img:border-white/5 prose-img:shadow-2xl

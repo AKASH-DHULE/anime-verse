@@ -1,6 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X, Send, Sparkles, User, Bot, Minus } from 'lucide-react';
+import { MessageCircle, X, Send, Sparkles, User, Bot, Minus, LogIn, Trash2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { db } from '../lib/firebase';
+import { 
+  collection, 
+  addDoc, 
+  query, 
+  orderBy, 
+  getDocs, 
+  serverTimestamp, 
+  limit,
+  writeBatch
+} from 'firebase/firestore';
+import Link from 'next/link';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -8,6 +21,7 @@ type Message = {
 };
 
 export default function MioAI() {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [input, setInput] = useState('');
@@ -15,7 +29,43 @@ export default function MioAI() {
     { role: 'assistant', content: 'Konnichiwa! I’m Mio, your personal Anime Expert! 🌸 How can I help you today? ✨' }
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingHistory, setIsFetchingHistory] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Fetch History
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (!user || !db) return;
+      
+      setIsFetchingHistory(true);
+      try {
+        const historyRef = collection(db, 'users', user.uid, 'mio_chat');
+        const q = query(historyRef, orderBy('createdAt', 'asc'), limit(50));
+        const querySnapshot = await getDocs(q);
+        
+        const historyMessages: Message[] = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          historyMessages.push({
+            role: data.role,
+            content: data.content
+          });
+        });
+
+        if (historyMessages.length > 0) {
+          setMessages(historyMessages);
+        }
+      } catch (error) {
+        console.error("Error fetching chat history:", error);
+      } finally {
+        setIsFetchingHistory(false);
+      }
+    };
+
+    if (isOpen && user) {
+      fetchHistory();
+    }
+  }, [isOpen, user]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -30,8 +80,21 @@ export default function MioAI() {
 
     const userMessage = input.trim();
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    const newMessage: Message = { role: 'user', content: userMessage };
+    setMessages(prev => [...prev, newMessage]);
     setIsLoading(true);
+
+    // Save User Message to Firestore
+    if (user && db) {
+      try {
+        await addDoc(collection(db, 'users', user.uid, 'mio_chat'), {
+          ...newMessage,
+          createdAt: serverTimestamp()
+        });
+      } catch (error) {
+        console.error("Error saving user message:", error);
+      }
+    }
 
     try {
       const history = messages.slice(-6).map(m => ({
@@ -47,7 +110,20 @@ export default function MioAI() {
 
       const data = await res.json();
       if (data.reply) {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
+        const assistantMessage: Message = { role: 'assistant', content: data.reply };
+        setMessages(prev => [...prev, assistantMessage]);
+
+        // Save Assistant Message to Firestore
+        if (user && db) {
+          try {
+            await addDoc(collection(db, 'users', user.uid, 'mio_chat'), {
+              ...assistantMessage,
+              createdAt: serverTimestamp()
+            });
+          } catch (error) {
+            console.error("Error saving assistant message:", error);
+          }
+        }
       } else {
         throw new Error(data.error || 'Failed to get reply');
       }
@@ -61,8 +137,28 @@ export default function MioAI() {
     }
   };
 
+  const clearChat = async () => {
+    if (!user || !db || !window.confirm("Clear all your chat history with Mio?")) return;
+    
+    try {
+      const historyRef = collection(db, 'users', user.uid, 'mio_chat');
+      const q = query(historyRef);
+      const querySnapshot = await getDocs(q);
+      
+      const batch = writeBatch(db);
+      querySnapshot.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+      
+      setMessages([{ role: 'assistant', content: 'History cleared! ✨ How can I help you now?' }]);
+    } catch (error) {
+      console.error("Error clearing history:", error);
+    }
+  };
+
   return (
-    <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-end">
+    <div className="fixed bottom-6 right-6 z-[150] flex flex-col items-end">
       <AnimatePresence>
         {isOpen && !isMinimized && (
           <motion.div
@@ -81,11 +177,22 @@ export default function MioAI() {
                   <h3 className="font-black text-sm uppercase tracking-widest text-white">Mio Assistant</h3>
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Anime Expert • Online</span>
+                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
+                      {user ? 'Cloud History Sync' : 'Guest Mode'}
+                    </span>
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                {user && (
+                  <button 
+                    onClick={clearChat}
+                    title="Clear Chat"
+                    className="p-2 hover:bg-white/5 rounded-xl text-gray-400 hover:text-red-400 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
                 <button 
                   onClick={() => setIsMinimized(true)}
                   className="p-2 hover:bg-white/5 rounded-xl text-gray-400 hover:text-white transition-colors"
@@ -103,6 +210,36 @@ export default function MioAI() {
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
+              {isFetchingHistory && (
+                <div className="flex items-center justify-center py-10 flex-col gap-2">
+                  <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                  <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Syncing History...</span>
+                </div>
+              )}
+              
+              {!user && messages.length > 1 && (
+                <Link href="/login">
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mx-2 mb-4 p-3 bg-accent/10 border border-accent/20 rounded-2xl flex items-center justify-between group hover:bg-accent/20 transition-all cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-accent/20 rounded-full flex items-center justify-center">
+                        <LogIn className="w-4 h-4 text-accent" />
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-bold text-white leading-none">Login to Save History</p>
+                        <p className="text-[9px] text-gray-400">Keep your chats across devices ✨</p>
+                      </div>
+                    </div>
+                    <div className="text-accent group-hover:translate-x-1 transition-transform">
+                      <Send className="w-4 h-4 rotate-45" />
+                    </div>
+                  </motion.div>
+                </Link>
+              )}
+
               {messages.map((m, i) => (
                 <motion.div
                   initial={{ opacity: 0, x: m.role === 'user' ? 20 : -20 }}
@@ -112,7 +249,7 @@ export default function MioAI() {
                 >
                   <div className={`max-w-[85%] p-3 rounded-2xl flex gap-3 ${
                     m.role === 'user' 
-                      ? 'bg-accent text-white rounded-tr-none' 
+                      ? 'bg-accent text-white rounded-tr-none shadow-lg shadow-accent/20' 
                       : 'bg-white/5 text-gray-200 border border-white/5 rounded-tl-none'
                   }`}>
                     {m.role === 'assistant' && <Bot className="w-4 h-4 shrink-0 mt-1 text-accent" />}

@@ -99,7 +99,7 @@ export default function SearchPage() {
 
       <div className="max-w-6xl mx-auto relative z-10 px-4">
         {/* Search Hero */}
-        <section className="pt-24 pb-12 text-center animate-in fade-in slide-in-from-top-4 duration-700">
+        <section className="pt-12 sm:pt-24 pb-8 sm:pb-12 text-center animate-in fade-in slide-in-from-top-4 duration-700">
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4 flex items-start sm:items-center justify-center gap-2 sm:gap-4">
             <Search className="w-7 h-7 sm:w-10 sm:h-10 text-accent mt-1 sm:mt-0 flex-shrink-0" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-blue-400 to-accent bg-[length:200%_auto] animate-gradient-x">
@@ -110,8 +110,8 @@ export default function SearchPage() {
             Search through thousands of anime series, movies, and specials from our massive database.
           </p>
 
-          <div className="max-w-3xl mx-auto mb-10 relative" ref={searchRef}>
-            <div className="flex flex-col md:flex-row gap-2 md:gap-4 p-1.5 md:p-2 bg-gray-900/60 backdrop-blur-md border border-gray-800 rounded-2xl shadow-2xl focus-within:border-accent/40 transition-all relative z-50">
+          <div className="max-w-3xl mx-auto mb-10" ref={searchRef}>
+            <div className="flex flex-col md:flex-row gap-2 md:gap-4 p-1.5 md:p-2 bg-gray-900/60 backdrop-blur-md border border-gray-800 rounded-2xl shadow-2xl focus-within:border-accent/40 transition-all relative z-[60]">
               <div className="flex-1 flex items-center px-1">
                 <input
                   placeholder={showNewest ? 'Browsing newest anime... or type to search' : 'Search by name (e.g. Naruto, One Piece)...'}
@@ -146,53 +146,61 @@ export default function SearchPage() {
                   <span className="text-accent text-[10px] font-black uppercase tracking-widest animate-pulse">Live</span>
                 </div>
               </div>
-            </div>
 
-            {/* Smart Hints / Autocomplete Dropdown */}
-            <AnimatePresence>
-              {isFocused && searchTerm.length >= 2 && searchResults && searchResults.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10, filter: 'blur(10px)' }}
-                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                  exit={{ opacity: 0, y: -10, filter: 'blur(10px)' }}
-                  className="absolute top-full left-0 right-0 mt-2 bg-gray-900/90 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-3xl overflow-hidden z-[40]"
-                >
-                  <div className="p-2">
-                    <div className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-500 border-b border-white/5 mb-1">
-                      <TrendingUp className="w-3 h-3 text-accent" /> Intelligence Hints
+              {/* Smart Hints / Autocomplete Dropdown */}
+              <AnimatePresence>
+                {isFocused && searchTerm.length >= 2 && searchResults && searchResults.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, filter: 'blur(10px)' }}
+                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                    exit={{ opacity: 0, y: -10, filter: 'blur(10px)' }}
+                    className="absolute top-[calc(100%+8px)] left-0 right-0 bg-gray-900/95 backdrop-blur-3xl border border-white/10 rounded-2xl shadow-[0_20px_50px_-20px_rgba(0,0,0,1)] overflow-hidden z-[100] max-h-[60vh] overflow-y-auto scrollbar-hide"
+                  >
+                    <div className="p-2">
+                      <div className="flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-500 border-b border-white/5 mb-1">
+                        <TrendingUp className="w-3 h-3 text-accent" /> Intelligence Hints
+                      </div>
+                      {searchResults.slice(0, 8).map((anime) => (
+                        <button
+                          key={anime.mal_id}
+                          onClick={() => handleHintClick(anime.title)}
+                          className="w-full text-left px-4 py-3 hover:bg-white/5 rounded-xl transition-all flex items-center justify-between group"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-8 h-10 rounded-md overflow-hidden shrink-0 border border-white/5 relative">
+                              <Image 
+                                src={anime.images?.jpg?.image_url || '/placeholder-news.jpg'} 
+                                alt="" 
+                                fill
+                                className="object-cover"
+                                sizes="32px"
+                              />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[11px] sm:text-sm font-bold text-gray-200 truncate group-hover:text-accent transition-colors">
+                                {anime.title}
+                              </p>
+                              <p className="text-[9px] sm:text-[10px] text-gray-500 font-bold uppercase tracking-tighter">
+                                {anime.type} • {anime.score || 'N/A'} Score
+                              </p>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-accent group-hover:translate-x-1 transition-all" />
+                        </button>
+                      ))}
+                      {searchResults.length > 8 && (
+                        <button 
+                          onClick={() => { setQuery(searchTerm); setIsFocused(false); }}
+                          className="w-full py-2 text-center text-[10px] font-black uppercase tracking-widest text-accent hover:text-white transition-colors border-t border-white/5 mt-1"
+                        >
+                          View All Results
+                        </button>
+                      )}
                     </div>
-                    {searchResults.slice(0, 6).map((anime) => (
-                      <button
-                        key={anime.mal_id}
-                        onClick={() => handleHintClick(anime.title)}
-                        className="w-full text-left px-4 py-3 hover:bg-white/5 rounded-xl transition-all flex items-center justify-between group"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-8 h-10 rounded-md overflow-hidden shrink-0 border border-white/5 relative">
-                            <Image 
-                              src={anime.images?.jpg?.image_url || '/placeholder-news.jpg'} 
-                              alt="" 
-                              fill
-                              className="object-cover"
-                              sizes="32px"
-                            />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-xs md:text-sm font-bold text-gray-200 truncate group-hover:text-accent transition-colors">
-                              {anime.title}
-                            </p>
-                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">
-                              {anime.type} • {anime.score || 'N/A'} Score
-                            </p>
-                          </div>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-accent group-hover:translate-x-1 transition-all" />
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             {/* Quick Filters / Tags */}
             <div className="mt-8 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 text-sm">
