@@ -14,6 +14,7 @@ import {
   writeBatch
 } from 'firebase/firestore';
 import Link from 'next/link';
+import useLocalStorage from '../hooks/useLocalStorage';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -25,12 +26,89 @@ export default function MioAI() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: 'Konnichiwa! I’m Mio, your personal Anime Expert! 🌸 How can I help you today? ✨' }
-  ]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingHistory, setIsFetchingHistory] = useState(false);
+  const [guestMessages, setGuestMessages] = useLocalStorage<Message[]>('mio_guest_chat', [
+    { role: 'assistant', content: 'Konnichiwa! I’m Mio, your personal Anime Expert! 🌸 How can I help you today? ✨' }
+  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Initialize messages from guest storage or Firestore
+  useEffect(() => {
+    if (!user) {
+      setMessages(guestMessages);
+    }
+  }, [user, guestMessages]);
+
+  // Save guest messages to storage
+  useEffect(() => {
+    if (!user && messages.length > 0) {
+      setGuestMessages(messages.slice(-10)); // Keep only last 10 locally too
+    }
+  }, [messages, user, setGuestMessages]);
+
+  // Pruning helper for Firestore
+  const pruneHistory = async (userId: string) => {
+    if (!db) return;
+    try {
+      const historyRef = collection(db, 'users', userId, 'mio_chat');
+      const q = query(historyRef, orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.size > 10) {
+        const batch = writeBatch(db);
+        // Keep the first 10 (most recent), delete the rest
+        querySnapshot.docs.slice(10).forEach((doc) => {
+          batch.delete(doc.ref);
+        });
+        await batch.commit();
+      }
+    } catch (error) {
+      console.error("Error pruning history:", error);
+    }
+  };
+
+  const isMigrating = useRef(false);
+
+  // Migrate guest messages to cloud on login
+  useEffect(() => {
+    const migrateGuestMessages = async () => {
+      if (user && db && guestMessages.length > 1 && !isMigrating.current) {
+        isMigrating.current = true;
+        // Skip the first message (welcome message)
+        const messagesToMigrate = guestMessages.slice(1);
+        
+        try {
+          const historyRef = collection(db, 'users', user.uid, 'mio_chat');
+          
+          // Upload in order
+          for (const msg of messagesToMigrate) {
+            await addDoc(historyRef, {
+              ...msg,
+              createdAt: serverTimestamp()
+            });
+          }
+          
+          // Clear guest messages locally (back to just welcome message)
+          setGuestMessages([
+            { role: 'assistant', content: 'Konnichiwa! I’m Mio, your personal Anime Expert! 🌸 How can I help you today? ✨' }
+          ]);
+          
+          // Prune history to keep only 10
+          await pruneHistory(user.uid);
+        } catch (error) {
+          console.error("Error migrating messages:", error);
+        } finally {
+          isMigrating.current = false;
+        }
+      }
+    };
+
+    if (user) {
+      migrateGuestMessages();
+    }
+  }, [user, guestMessages, setGuestMessages]);
 
   // Fetch History
   useEffect(() => {
@@ -40,7 +118,8 @@ export default function MioAI() {
       setIsFetchingHistory(true);
       try {
         const historyRef = collection(db, 'users', user.uid, 'mio_chat');
-        const q = query(historyRef, orderBy('createdAt', 'asc'), limit(50));
+        // Fetch last 10 messages (ordered by desc, then we reverse for display)
+        const q = query(historyRef, orderBy('createdAt', 'desc'), limit(10));
         const querySnapshot = await getDocs(q);
         
         const historyMessages: Message[] = [];
@@ -53,7 +132,11 @@ export default function MioAI() {
         });
 
         if (historyMessages.length > 0) {
-          setMessages(historyMessages);
+          // Reverse because we fetched latest 10 in desc order
+          setMessages(historyMessages.reverse());
+        } else {
+          // Fallback to welcome message if no history
+          setMessages([{ role: 'assistant', content: 'Konnichiwa! I’m Mio, your personal Anime Expert! 🌸 How can I help you today? ✨' }]);
         }
       } catch (error) {
         console.error("Error fetching chat history:", error);
@@ -91,13 +174,15 @@ export default function MioAI() {
           ...newMessage,
           createdAt: serverTimestamp()
         });
+        // Prune after adding
+        pruneHistory(user.uid);
       } catch (error) {
         console.error("Error saving user message:", error);
       }
     }
 
     try {
-      const history = messages.slice(-6).map(m => ({
+      const history = messages.slice(-10).map(m => ({
         role: m.role === 'assistant' ? 'assistant' : 'user',
         content: m.content
       }));
@@ -111,7 +196,7 @@ export default function MioAI() {
       const data = await res.json();
       if (data.reply) {
         const assistantMessage: Message = { role: 'assistant', content: data.reply };
-        setMessages(prev => [...prev, assistantMessage]);
+        setMessages(prev => [...prev, assistantMessage].slice(-10));
 
         // Save Assistant Message to Firestore
         if (user && db) {
@@ -120,6 +205,8 @@ export default function MioAI() {
               ...assistantMessage,
               createdAt: serverTimestamp()
             });
+            // Prune after adding
+            pruneHistory(user.uid);
           } catch (error) {
             console.error("Error saving assistant message:", error);
           }
@@ -131,7 +218,7 @@ export default function MioAI() {
       setMessages(prev => [...prev, { 
         role: 'assistant', 
         content: 'Gomen! I hit a little snag. 🌸 Can you try again? ✨' 
-      }]);
+      } as Message].slice(-10));
     } finally {
       setIsLoading(false);
     }
