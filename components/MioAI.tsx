@@ -12,7 +12,8 @@ import {
   serverTimestamp, 
   limit,
   writeBatch,
-  onSnapshot
+  onSnapshot,
+  where
 } from 'firebase/firestore';
 import Link from 'next/link';
 import useLocalStorage from '../hooks/useLocalStorage';
@@ -53,8 +54,12 @@ export default function MioAI() {
   const pruneHistory = async (userId: string) => {
     if (!db) return;
     try {
-      const historyRef = collection(db, 'users', userId, 'mio_chat');
-      const q = query(historyRef, orderBy('createdAt', 'desc'));
+      const historyRef = collection(db, 'mio_chat');
+      const q = query(
+        historyRef, 
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc')
+      );
       const querySnapshot = await getDocs(q);
       
       if (querySnapshot.size > 10) {
@@ -81,12 +86,13 @@ export default function MioAI() {
         const messagesToMigrate = guestMessages.slice(1);
         
         try {
-          const historyRef = collection(db, 'users', user.uid, 'mio_chat');
+          const historyRef = collection(db, 'mio_chat');
           
           // Upload in order
           for (const msg of messagesToMigrate) {
             await addDoc(historyRef, {
               ...msg,
+              userId: user.uid,
               createdAt: serverTimestamp()
             });
           }
@@ -116,8 +122,13 @@ export default function MioAI() {
     if (!user || !db || !isOpen) return;
     
     setIsFetchingHistory(true);
-    const historyRef = collection(db, 'users', user.uid, 'mio_chat');
-    const q = query(historyRef, orderBy('createdAt', 'desc'), limit(10));
+    const historyRef = collection(db, 'mio_chat');
+    const q = query(
+      historyRef, 
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc'), 
+      limit(10)
+    );
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const historyMessages: Message[] = [];
@@ -165,8 +176,9 @@ export default function MioAI() {
     // Save User Message to Firestore
     if (user && db) {
       try {
-        await addDoc(collection(db, 'users', user.uid, 'mio_chat'), {
+        await addDoc(collection(db, 'mio_chat'), {
           ...newMessage,
+          userId: user.uid,
           createdAt: serverTimestamp()
         });
         // Prune after adding
@@ -196,8 +208,9 @@ export default function MioAI() {
         // Save Assistant Message to Firestore
         if (user && db) {
           try {
-            await addDoc(collection(db, 'users', user.uid, 'mio_chat'), {
+            await addDoc(collection(db, 'mio_chat'), {
               ...assistantMessage,
+              userId: user.uid,
               createdAt: serverTimestamp()
             });
             // Prune after adding
@@ -223,8 +236,8 @@ export default function MioAI() {
     if (!user || !db || !window.confirm("Clear all your chat history with Mio?")) return;
     
     try {
-      const historyRef = collection(db, 'users', user.uid, 'mio_chat');
-      const q = query(historyRef);
+      const historyRef = collection(db, 'mio_chat');
+      const q = query(historyRef, where('userId', '==', user.uid));
       const querySnapshot = await getDocs(q);
       
       const batch = writeBatch(db);
