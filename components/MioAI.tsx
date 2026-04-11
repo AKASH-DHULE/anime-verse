@@ -11,7 +11,8 @@ import {
   getDocs, 
   serverTimestamp, 
   limit,
-  writeBatch
+  writeBatch,
+  onSnapshot
 } from 'firebase/firestore';
 import Link from 'next/link';
 import useLocalStorage from '../hooks/useLocalStorage';
@@ -110,44 +111,38 @@ export default function MioAI() {
     }
   }, [user, guestMessages, setGuestMessages]);
 
-  // Fetch History
+  // Real-Time Sync
   useEffect(() => {
-    const fetchHistory = async () => {
-      if (!user || !db) return;
-      
-      setIsFetchingHistory(true);
-      try {
-        const historyRef = collection(db, 'users', user.uid, 'mio_chat');
-        // Fetch last 10 messages (ordered by desc, then we reverse for display)
-        const q = query(historyRef, orderBy('createdAt', 'desc'), limit(10));
-        const querySnapshot = await getDocs(q);
-        
-        const historyMessages: Message[] = [];
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          historyMessages.push({
-            role: data.role,
-            content: data.content
-          });
+    if (!user || !db || !isOpen) return;
+    
+    setIsFetchingHistory(true);
+    const historyRef = collection(db, 'users', user.uid, 'mio_chat');
+    const q = query(historyRef, orderBy('createdAt', 'desc'), limit(10));
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const historyMessages: Message[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        historyMessages.push({
+          role: data.role,
+          content: data.content
         });
+      });
 
-        if (historyMessages.length > 0) {
-          // Reverse because we fetched latest 10 in desc order
-          setMessages(historyMessages.reverse());
-        } else {
-          // Fallback to welcome message if no history
-          setMessages([{ role: 'assistant', content: 'Konnichiwa! I’m Mio, your personal Anime Expert! 🌸 How can I help you today? ✨' }]);
-        }
-      } catch (error) {
-        console.error("Error fetching chat history:", error);
-      } finally {
-        setIsFetchingHistory(false);
+      if (historyMessages.length > 0) {
+        // Reverse because we fetched latest 10 in desc order
+        setMessages(historyMessages.reverse());
+      } else {
+        // Fallback to welcome message if no history
+        setMessages([{ role: 'assistant', content: 'Konnichiwa! I’m Mio, your personal Anime Expert! 🌸 How can I help you today? ✨' }]);
       }
-    };
+      setIsFetchingHistory(false);
+    }, (error) => {
+      console.error("Error in history sync:", error);
+      setIsFetchingHistory(false);
+    });
 
-    if (isOpen && user) {
-      fetchHistory();
-    }
+    return () => unsubscribe();
   }, [isOpen, user]);
 
   const scrollToBottom = () => {
