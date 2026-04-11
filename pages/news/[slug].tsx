@@ -102,7 +102,7 @@ export default function NewsDetail() {
 
   // Function to extract YouTube ID from content
   const extractYoutubeId = (content: string) => {
-    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/gi;
+    const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/gi;
     const matches = Array.from(content.matchAll(regex));
     if (matches.length > 0) {
       // Return the most recent (last found in HTML usually)

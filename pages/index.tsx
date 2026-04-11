@@ -3,17 +3,14 @@ import AiringMarquee from '../components/AiringMarquee';
 import TopAnimeCarousel from '../components/TopAnimeCarousel';
 import useTopAnime from '../hooks/useTopAnime';
 import useSeasonsNow from '../hooks/useSeasonsNow';
-import useNews from '../hooks/useNews';
 import AnimeCard from '../components/AnimeCard';
 import SkeletonCard from '../components/SkeletonCard';
 import ErrorFallback from '../components/ErrorFallback';
-import NewsPopup from '../components/NewsPopup';
 import type { Anime } from '../types/anime';
 
 export default function Home() {
   const { data, isLoading, error } = useTopAnime(1);
   const { data: seasonNow, isLoading: loadingSeason, error: seasonError } = useSeasonsNow();
-  const { data: news = [] } = useNews(5);
 
   return (
     <div className="relative pb-24 overflow-hidden">
@@ -92,9 +89,6 @@ export default function Home() {
           </div>
         </section>
       </div>
-
-      {/* News Rotation Popup - Fixed Bottom */}
-      <NewsPopup newsItems={news} />
     </div>
   );
 }

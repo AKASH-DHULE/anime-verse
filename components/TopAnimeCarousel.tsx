@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import SkeletonCard from './SkeletonCard';
 import AnimeCard from './AnimeCard';
 import type { Anime } from '../types/anime';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface TopAnimeCarouselProps {
   items: Anime[] | undefined;
@@ -14,7 +15,7 @@ export default function TopAnimeCarousel({ items, isLoading }: TopAnimeCarouselP
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
-      const scrollAmount = 400;
+      const scrollAmount = window.innerWidth < 640 ? 300 : 500;
       const target = scrollContainerRef.current.scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount);
       scrollContainerRef.current.scrollTo({
         left: target,
@@ -26,43 +27,77 @@ export default function TopAnimeCarousel({ items, isLoading }: TopAnimeCarouselP
   const displayItems = items?.slice(0, 10) || [];
 
   return (
-    <div className="w-full relative group/carousel">
+    <div className="w-full relative group/carousel py-4">
       {/* Scroll Controls (Desktop only) */}
       <div className="hidden md:block">
-        <button
+        <motion.button
+          whileHover={{ scale: 1.1, x: -5 }}
+          whileTap={{ scale: 0.9 }}
           onClick={() => scroll('left')}
-          className="absolute -left-6 top-1/2 -translate-y-1/2 z-20 bg-black/80 hover:bg-accent text-white p-3 rounded-full shadow-2xl transition-all opacity-0 group-hover/carousel:opacity-100 -translate-x-4 group-hover/carousel:translate-x-0"
+          className="absolute -left-6 top-1/2 -translate-y-1/2 z-30 bg-gray-950/80 backdrop-blur-md border border-white/10 text-white p-4 rounded-2xl shadow-2xl transition-opacity opacity-0 group-hover/carousel:opacity-100"
           aria-label="Scroll left">
           <ChevronLeft size={24} />
-        </button>
-        <button
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.1, x: 5 }}
+          whileTap={{ scale: 0.9 }}
           onClick={() => scroll('right')}
-          className="absolute -right-6 top-1/2 -translate-y-1/2 z-20 bg-black/80 hover:bg-accent text-white p-3 rounded-full shadow-2xl transition-all opacity-0 group-hover/carousel:opacity-100 translate-x-4 group-hover/carousel:translate-x-0"
+          className="absolute -right-6 top-1/2 -translate-y-1/2 z-30 bg-gray-950/80 backdrop-blur-md border border-white/10 text-white p-4 rounded-2xl shadow-2xl transition-opacity opacity-0 group-hover/carousel:opacity-100"
           aria-label="Scroll right">
           <ChevronRight size={24} />
-        </button>
+        </motion.button>
       </div>
 
       {/* Scroll container */}
       <div
         ref={scrollContainerRef}
-        className="overflow-x-auto scroll-smooth snap-x snap-mandatory flex gap-3 sm:gap-6 pb-4 sm:pb-8 pt-4 px-4 sm:px-2 scrollbar-hide">
-        {isLoading && (
-          <>
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="flex-shrink-0 w-[150px] sm:w-[220px] snap-start">
+        className="overflow-x-auto scrollbar-hide flex gap-4 sm:gap-8 pb-12 pt-6 px-4 scroll-smooth snap-x snap-mandatory"
+      >
+        <AnimatePresence mode="popLayout">
+          {isLoading ? (
+            Array.from({ length: 10 }).map((_, i) => (
+              <motion.div 
+                key={`skeleton-${i}`}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.05 }}
+                className="flex-shrink-0 w-[150px] sm:w-[240px] snap-center"
+              >
                 <SkeletonCard />
-              </div>
-            ))}
-          </>
-        )}
-
-        {!isLoading &&
-          displayItems.map((anime, idx) => (
-            <div key={anime.mal_id} className="flex-shrink-0 w-[150px] sm:w-[220px] snap-start">
-              <AnimeCard anime={anime} rank={idx + 1} />
-            </div>
-          ))}
+              </motion.div>
+            ))
+          ) : (
+            displayItems.map((anime, idx) => (
+              <motion.div 
+                key={anime.mal_id}
+                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                whileInView={{ 
+                  opacity: 1, 
+                  scale: 1, 
+                  y: 0,
+                }}
+                viewport={{ 
+                  once: false, 
+                  amount: 0.6,
+                  margin: "0px -20px 0px -20px"
+                }}
+                whileHover={{ y: -10, transition: { duration: 0.2 } }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 300, 
+                  damping: 25,
+                  delay: idx * 0.02
+                }}
+                className="flex-shrink-0 w-[150px] sm:w-[240px] snap-center relative"
+              >
+                <AnimeCard anime={anime} rank={idx + 1} />
+                
+                {/* Glow effect for centered items */}
+                <div className="absolute inset-x-0 -bottom-4 h-1 bg-accent/30 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+              </motion.div>
+            ))
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
