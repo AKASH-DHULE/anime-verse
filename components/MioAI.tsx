@@ -17,10 +17,26 @@ import {
 } from 'firebase/firestore';
 import Link from 'next/link';
 import useLocalStorage from '../hooks/useLocalStorage';
+import DOMPurify from 'isomorphic-dompurify';
 
 type Message = {
   role: 'user' | 'assistant';
   content: string;
+};
+
+const formatMessage = (content: string) => {
+  if (!content) return { __html: '' };
+  
+  const html = content
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-accent/90 font-bold">$1</strong>')
+    .replace(/\* \*\*(.*?)\*\*/g, '<strong class="text-accent/90 font-bold mt-2 block">$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em class="text-gray-300 italic">$1</em>')
+    .replace(/`(.*?)`/g, '<code class="bg-black/50 border border-white/10 px-1.5 py-0.5 rounded-md text-accent text-[11px] font-mono">$1</code>')
+    .replace(/^- (.*)$/gm, '<div class="flex gap-2.5 mt-1.5 mb-1"><span class="text-accent font-black text-[10px] mt-1">✦</span><span class="flex-1">$1</span></div>')
+    .replace(/\n\n/g, '<div class="h-2"></div>')
+    .replace(/\n/g, '<br />');
+    
+  return { __html: DOMPurify.sanitize(html) };
 };
 
 export default function MioAI() {
@@ -36,10 +52,17 @@ export default function MioAI() {
   const [messages, setMessages] = useState<Message[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const guestInitialized = useRef(false);
+
   // Initialize messages from guest storage or Firestore
   useEffect(() => {
     if (!user) {
-      setMessages(guestMessages);
+      if (!guestInitialized.current) {
+        setMessages(guestMessages);
+        guestInitialized.current = true;
+      }
+    } else {
+      guestInitialized.current = false;
     }
   }, [user, guestMessages]);
 
@@ -257,23 +280,27 @@ export default function MioAI() {
       <AnimatePresence>
         {isOpen && !isMinimized && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.9, filter: 'blur(10px)' }}
+            initial={{ opacity: 0, y: 24, scale: 0.9, filter: 'blur(10px)' }}
             animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, y: 20, scale: 0.9, filter: 'blur(10px)' }}
-            className="w-[90vw] sm:w-[400px] h-[500px] bg-gray-900/80 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-2xl flex flex-col overflow-hidden mb-4"
+            exit={{ opacity: 0, y: 24, scale: 0.9, filter: 'blur(10px)' }}
+            className="w-[95vw] sm:w-[400px] h-[75vh] sm:h-[600px] max-h-[800px] bg-[#09090b]/90 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-[0_0_50px_-12px_rgba(255,45,122,0.15)] flex flex-col overflow-hidden mb-4"
           >
             {/* Header */}
-            <div className="p-4 bg-accent/20 border-b border-white/5 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-accent rounded-full flex items-center justify-center shadow-lg shadow-accent/20 border border-white/20">
-                  <Sparkles className="w-5 h-5 text-white animate-pulse" />
+            <div className="p-4 bg-white/[0.03] border-b border-white/5 flex items-center justify-between relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
+              <div className="flex items-center gap-3 relative z-10">
+                <div className="w-10 h-10 bg-gradient-to-br from-accent to-accent-700 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(255,45,122,0.3)] border border-white/20">
+                  <Sparkles className="w-4 h-4 text-white hover:rotate-180 transition-transform duration-700" />
                 </div>
                 <div>
-                  <h3 className="font-black text-sm uppercase tracking-widest text-white">Mio Assistant</h3>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
-                      {user ? 'Cloud History Sync' : 'Guest Mode'}
+                  <h3 className="font-black text-[13px] uppercase tracking-[0.2em] bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Mio Assistant</h3>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">
+                      {user ? 'Secured Cloud Sync' : 'Local Guest Mode'}
                     </span>
                   </div>
                 </div>
@@ -337,30 +364,38 @@ export default function MioAI() {
 
               {messages.map((m, i) => (
                 <motion.div
-                  initial={{ opacity: 0, x: m.role === 'user' ? 20 : -20 }}
-                  animate={{ opacity: 1, x: 0 }}
+                  initial={{ opacity: 0, y: 10, filter: 'blur(5px)' }}
+                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
                   key={i}
                   className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className={`max-w-[85%] p-3 rounded-2xl flex gap-3 ${
+                  <div className={`max-w-[85%] p-3.5 rounded-2xl flex gap-3 ${
                     m.role === 'user' 
-                      ? 'bg-accent text-white rounded-tr-none shadow-lg shadow-accent/20' 
-                      : 'bg-white/5 text-gray-200 border border-white/5 rounded-tl-none'
+                      ? 'bg-gradient-to-br from-accent to-accent-700 text-white rounded-tr-[4px] shadow-[0_4px_20px_-5px_rgba(255,45,122,0.4)]' 
+                      : 'bg-white/5 text-gray-200 border border-white/10 rounded-tl-[4px] shadow-sm'
                   }`}>
-                    {m.role === 'assistant' && <Bot className="w-4 h-4 shrink-0 mt-1 text-accent" />}
-                    <div className="text-sm leading-relaxed">{m.content}</div>
-                    {m.role === 'user' && <User className="w-4 h-4 shrink-0 mt-1 opacity-60" />}
+                    {m.role === 'assistant' && <div className="w-6 h-6 shrink-0 bg-accent/10 rounded-full flex justify-center items-center mt-1"><Bot className="w-3.5 h-3.5 text-accent" /></div>}
+                    <div 
+                      className="text-[13px] sm:text-sm leading-relaxed tracking-wide font-medium"
+                      dangerouslySetInnerHTML={formatMessage(m.content)}
+                    />
+                    {m.role === 'user' && <User className="w-4 h-4 shrink-0 mt-0.5 opacity-80" />}
                   </div>
                 </motion.div>
               ))}
               {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-white/5 p-3 rounded-2xl rounded-tl-none border border-white/5 flex gap-2">
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} 
+                  className="flex justify-start"
+                >
+                  <div className="bg-white/5 p-3.5 rounded-2xl rounded-tl-[4px] border border-white/10 flex gap-2 items-center shadow-lg">
+                    <Bot className="w-3.5 h-3.5 text-accent animate-pulse mr-1" />
                     <div className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce" />
-                    <div className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce [animation-delay:0.2s]" />
-                    <div className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce [animation-delay:0.4s]" />
+                    <div className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce [animation-delay:0.15s]" />
+                    <div className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce [animation-delay:0.3s]" />
                   </div>
-                </div>
+                </motion.div>
               )}
               <div ref={messagesEndRef} />
             </div>
@@ -374,13 +409,13 @@ export default function MioAI() {
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask Mio about anime..."
-                  className="flex-1 bg-white/5 border border-white/5 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-accent/40 transition-colors"
+                  placeholder="Ask Mio anything... ✨"
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 focus:bg-white/10 transition-all font-medium"
                 />
                 <button
                   type="submit"
                   disabled={isLoading || !input.trim()}
-                  className="bg-accent hover:bg-accent/90 disabled:opacity-50 text-white p-2 rounded-xl transition-all active:scale-90"
+                  className="bg-accent hover:bg-accent/80 hover:shadow-[0_0_15px_rgba(255,45,122,0.5)] disabled:opacity-50 disabled:hover:shadow-none text-white p-2.5 rounded-xl transition-all active:scale-95"
                 >
                   <Send className="w-5 h-5" />
                 </button>
@@ -398,15 +433,15 @@ export default function MioAI() {
           if (isOpen && isMinimized) setIsMinimized(false);
           else setIsOpen(!isOpen);
         }}
-        className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-500 overflow-hidden relative ${
-          isOpen ? 'bg-white text-accent' : 'bg-accent text-white'
+        className={`w-16 h-16 rounded-full flex items-center justify-center shadow-[0_0_30px_-5px_rgba(255,45,122,0.4)] hover:shadow-[0_0_40px_rgba(255,45,122,0.6)] transition-all duration-500 overflow-hidden relative group ${
+          isOpen ? 'bg-white text-accent' : 'bg-gradient-to-br from-accent to-accent-700 text-white'
         }`}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
         {isOpen && !isMinimized ? (
-          <X className="w-8 h-8 relative z-10" />
+          <X className="w-7 h-7 relative z-10 group-hover:rotate-90 transition-transform duration-300" />
         ) : (
-          <MessageCircle className="w-8 h-8 relative z-10" />
+          <MessageCircle className="w-7 h-7 relative z-10 group-hover:scale-110 transition-transform duration-300" />
         )}
         {/* Unread indicator / Notification pulse */}
         {!isOpen && (

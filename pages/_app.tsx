@@ -11,6 +11,7 @@ import NewsPopup from '../components/NewsPopup';
 import useNews from '../hooks/useNews';
 import { useState } from 'react';
 import { AuthProvider } from '../context/AuthContext';
+import NextTopLoader from 'nextjs-toploader';
 
 export default function App({ Component, pageProps }: AppProps) {
   const [queryClient] = useState(() => new QueryClient());
@@ -21,6 +22,17 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <NextTopLoader
+          color="#ff2d7a"
+          initialPosition={0.08}
+          crawlSpeed={200}
+          height={3}
+          crawl={true}
+          showSpinner={false}
+          easing="ease"
+          speed={200}
+          shadow="0 0 10px #ff2d7a,0 0 5px #ff2d7a"
+        />
         <div className="min-h-screen bg-black text-white selection:bg-accent/30 overflow-x-hidden">
           <OfflineOverlay />
           <Header />

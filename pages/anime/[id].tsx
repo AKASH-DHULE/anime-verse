@@ -8,7 +8,6 @@ import useWatchOrder from '../../hooks/useWatchOrder';
 import useStreaming from '../../hooks/useStreaming';
 import WatchOrderList from '../../components/WatchOrderList';
 import CommentSection from '../../components/CommentSection';
-import SkeletonCard from '../../components/SkeletonCard';
 import ErrorFallback from '../../components/ErrorFallback';
 import { useUserData } from '../../hooks/useUserData';
 import { useAuth } from '../../context/AuthContext';
@@ -352,12 +351,22 @@ export default function AnimeDetails(): JSX.Element {
           {/* Watch Order Timeline */}
           <GlassPanel title="Watch Order / Related">
             {loadingRelations && (
-              <div className="flex gap-4 overflow-hidden pt-2">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="flex-shrink-0 w-44">
-                    <SkeletonCard />
-                  </div>
-                ))}
+              <div className="relative mt-8">
+                <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-700/50 -translate-y-1/2 hidden sm:block" />
+                <div className="flex overflow-x-auto gap-8 pb-8 snap-x relative">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex-shrink-0 w-64 snap-center relative">
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-gray-800 rounded-full border-4 border-gray-900 z-10 hidden sm:block animate-pulse" />
+                      <div className="relative z-20 flex flex-col items-center text-center">
+                        <div className="relative w-40 h-56 bg-gray-800/60 rounded-2xl overflow-hidden animate-pulse border border-white/5" />
+                        <div className="mt-4 px-2 w-full flex flex-col items-center gap-2.5">
+                          <div className="h-3.5 w-24 bg-gray-800/60 rounded-full animate-pulse" />
+                          <div className="h-2 w-12 bg-gray-800/60 rounded-full animate-pulse" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
             {!loadingRelations && relations && relations.length === 0 && (

@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { Mail, Lock, LogIn, AlertCircle, Sparkles, Cat, Heart, Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, sendPasswordResetEmail } from 'firebase/auth';
+import { useEffect } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
@@ -19,8 +20,45 @@ export default function Login() {
   const [resetEmail, setResetEmail] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
   const [resetSuccess, setResetSuccess] = useState('');
-  const router = useRouter();
   const { user } = useAuth();
+  const router = useRouter();
+
+  // Handle Google Redirect Result
+  useEffect(() => {
+    if (!auth || !db || !router.isReady) return;
+    
+    const checkRedirect = async () => {
+      // Re-verify for TypeScript narrowing
+      if (!auth || !db) return;
+
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          setLoading(true);
+          const userRef = doc(db, 'users', result.user.uid);
+          const userSnap = await getDoc(userRef);
+          if (!userSnap.exists()) {
+            await setDoc(userRef, {
+              email: result.user.email,
+              name: result.user.displayName,
+              favorites: [],
+              watchlist: []
+            });
+          }
+          router.push('/favorites');
+        }
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          const errorCode = (err as { code?: string }).code || '';
+          setError(getAuthErrorMessage(errorCode));
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkRedirect();
+  }, [router.isReady, router]);
 
   // If already logged in, redirect
   if (user) {
@@ -94,18 +132,28 @@ export default function Login() {
     setError('');
     try {
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const userRef = doc(db, 'users', result.user.uid);
-      const userSnap = await getDoc(userRef);
-      if (!userSnap.exists()) {
-         await setDoc(userRef, {
-           email: result.user.email,
-           name: result.user.displayName,
-           favorites: [],
-           watchlist: []
-         });
+      
+      // Detect mobile device
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        // Redirect is better for mobile UX
+        await signInWithRedirect(auth, provider);
+      } else {
+        // Popup is fine for desktop
+        const result = await signInWithPopup(auth, provider);
+        const userRef = doc(db, 'users', result.user.uid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+           await setDoc(userRef, {
+             email: result.user.email,
+             name: result.user.displayName,
+             favorites: [],
+             watchlist: []
+           });
+        }
+        router.push('/favorites');
       }
-      router.push('/favorites');
     } catch (err: unknown) {
       if (err instanceof Error) {
         const errorCode = (err as { code?: string }).code || '';
@@ -114,7 +162,9 @@ export default function Login() {
         setError('An unexpected error occurred during Google sign-in.');
       }
     } finally {
-      setLoading(false);
+      if (!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        setLoading(false);
+      }
     }
   };
 

@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import useAnimeDetail from '../hooks/useAnimeDetail';
-import SkeletonCard from './SkeletonCard';
 
 interface WatchOrderCardProps {
   mal_id: number;
@@ -37,7 +36,15 @@ export default function WatchOrderCard({ mal_id, title, relation }: WatchOrderCa
   const { data: animeDetail, isLoading } = useAnimeDetail(mal_id);
 
   if (isLoading) {
-    return <SkeletonCard />;
+    return (
+      <div className="flex flex-col items-center text-center">
+        <div className="relative w-40 h-56 bg-gray-800/60 rounded-2xl overflow-hidden animate-pulse border border-white/5" />
+        <div className="mt-4 px-2 w-full flex flex-col items-center gap-2.5">
+          <div className="h-3.5 w-24 bg-gray-800/60 rounded-full animate-pulse" />
+          <div className="h-2 w-12 bg-gray-800/60 rounded-full animate-pulse" />
+        </div>
+      </div>
+    );
   }
 
   const image = animeDetail?.large_image_url || '';
